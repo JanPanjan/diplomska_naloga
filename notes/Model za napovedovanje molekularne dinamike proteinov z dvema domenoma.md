@@ -6,8 +6,6 @@ aliases:
   - diploma
   - diplomska naloga
 ---
-# Ideja
-
 Ustvariti model, ki bo znal napovedati molekularno dinamiko (dveh) proteinskih domen. On in Jukič sta ustvarila model, ki je sposoben na ravni atomov napovedati dinamiko (kako se premikajo posamezni atomi). Ne zna pa napovedati kako se gibajo domene proteinov. Za začetek bi ustvaril model, ki napove gibanje dveh domen, kar je predlagal. V podatkovni bazi [ATLAS](https://www.dsimb.inserm.fr/ATLAS) bi našli proteine z dvema domenoma, podatke bi prečistili in tako... Nato pa bi morali najti neke lastnosti, ki bi jih model moral prepoznati, da bi napovedal strukturo. Lahko si misliš o njih kot nekakšnih biomarkerjih.
 
 # Resources
@@ -44,16 +42,30 @@ Ustvariti model, ki bo znal napovedati molekularno dinamiko (dveh) proteinskih d
 Docs: https://manual.gromacs.org/current/install-guide/index.html
 
 ```bash
+# make sure gcc >= 11 and cmake >= 3.28 are installed
+
+# pull and extract the source code
 wget https://ftp.gromacs.org/gromacs/gromacs-2026.0.tar.gz
-tar -xfz gromacs-2026.0.tar.gz
+tar -xzf gromacs-2026.0.tar.gz
+
 cd gromacs-2026.0
+
+# create an isolated build directory that can be removed if something goes wrong or smtn
 mkdir build
 cd build
+
+# installs in /usr/local/gromacs by default
+# install fast fourier transform library
 cmake .. -DGMX_BUILD_OWN_FFTW=ON -DREGRESSIONTEST_DOWNLOAD=ON
 make
+
+# run tests after build
 make check
+
+# finally, install gromacs
 sudo make install
-source /usr/local/bin/GMXRC
+source /usr/local/gromacs/bin/GMXRC
+# NOTE: keep in mind that it does not work with fish :(
 ```
 
 ### Tutorial
@@ -67,11 +79,33 @@ Link: [[GROMACS Tutorial - Lysozyme in Water]]
 ## SWORD2
 
 Docs: https://github.com/DSIMB/SWORD2
+Conda: https://www.anaconda.com/docs/getting-started/miniconda/install#quickstart-install-instructions
 
 ```bash
-git clone git@github.com:DSIMB/SWORD2.git
-cd SWORD2
+PROGRAMS_PATH="/home/jan/Programs"
+SWORD_PATH="$PROGRAMS_PATH/SWORD2"
+CONDA_PATH="$PROGRAMS_PATH/miniconda3"
+
+# install miniconda
+
+mkdir -p "$CONDA_PATH"
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O "$CONDA_PATH/miniconda.sh"
+bash "$CONDA_PATH/miniconda.sh" -b -u -p "$CONDA_PATH"
+rm "$CONDA_PATH/miniconda.sh"
+source "$CONDA_PATH/bin/activate"
+conda init --all
+exec bash
+conda config --set auto_activate_base false
+
+# install SWORD2
+
+git clone git@github.com:DSIMB/SWORD2.git "$SWORD_PATH"
+cd "$SWORD_PATH"
 conda env create -f environment.yml
 bash install.sh
+
+# conda activate sword2
+# ./SWORD2.py
+# ...
 ```
 
