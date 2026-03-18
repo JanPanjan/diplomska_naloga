@@ -1,17 +1,17 @@
 ;
-;	File 'mdout.mdp' was generated
+;	File '/home/jan/Documents/diplomska_naloga/data/gromacs_tutorial_1/run/mdout.mdp' was generated
 ;	By user: jan (1000)
-;	On host: jan-laptop
-;	At date: Wed Feb 25 21:29:54 2026
+;	On host: fedora
+;	At date: Wed Mar 18 14:13:23 2026
 ;
 ;	Created by:
 ;	                     :-) GROMACS - gmx grompp, 2026.0 (-:
 ;	
-;	Executable:   /usr/local/bin/gmx
-;	Data prefix:  /usr/local
-;	Working dir:  /home/jan/Documents/Personal/Diploma/data/gromacs_tutorial_1
+;	Executable:   /usr/local/gromacs/bin/gmx
+;	Data prefix:  /usr/local/gromacs
+;	Working dir:  /home/jan/Documents/diplomska_naloga/data/gromacs_tutorial_1
 ;	Command line:
-;	  gmx grompp -f ions.mdp -c 1aki_solv.gro -p topol.top -o ions.tpr -v
+;	  gmx grompp -f /home/jan/Documents/diplomska_naloga/data/gromacs_tutorial_1/inputs/ions.mdp -c /home/jan/Documents/diplomska_naloga/data/gromacs_tutorial_1/topology/1aki_solv.gro -p /home/jan/Documents/diplomska_naloga/data/gromacs_tutorial_1/topology/topol.top -o /home/jan/Documents/diplomska_naloga/data/gromacs_tutorial_1/run/ions.tpr -po /home/jan/Documents/diplomska_naloga/data/gromacs_tutorial_1/run/mdout.mdp
 
 ; VARIOUS PREPROCESSING OPTIONS
 ; Preprocessor information: use cpp syntax.
@@ -175,7 +175,7 @@ annealing-temp           =
 ; GENERATE VELOCITIES FOR STARTUP RUN
 gen-vel                  = no
 gen-temp                 = 300
-gen-seed                 = 1912515478
+gen-seed                 = -17302025
 
 ; OPTIONS FOR BONDS    
 constraints              = none

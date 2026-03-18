@@ -23,10 +23,10 @@ grep -v HOH 1AKI.pdb > 1AKI_clean.pdb
 gmx pdb2gmx -f 1AKI_clean.pdb -o 1AKI_processed.gro -water spce
 ```
 
-# 1. Introduction 
+# 1. Introduction
 
 > After completing Tutorial 1, "Lysozyme in Water," the user should be able to **build a solvated protein system** and **carry out a short MD simulation**.
-> 
+>
 > Specific learning objectives include:
 >
 > 1. Understand the **content** of a GROMACS **system topology**
@@ -85,14 +85,14 @@ The GROMACS program most frequently used to write topologies is called `pdb2gmx`
 > The name of this program is somewhat misleading, as there is no strict requirement to provide coordinates in PDB format. Refer to the help information for `pdb2gmx` for allowed formats.
 >
  >An important point about `pdb2gmx` is that it can only process [[Chemical Species]] for which parameters have been provided; **it does not perform automated parametrization**. Therefore, a **user must carefully consider what is provided** to `pdb2gmx` **before attempting to process a coordinate file.**
- 
+
 By default, `pdb2gmx` will produce 3 output files:
 
 1. `topol.top`: **system topology**
 2. `posre.itp`: **topology** that specifies parameters for position restraints
 3. `conf.gro`: **force-field compliant coordinate file** (named `1AKI_processed.gro` in this tutorial)
 
-The output coordinate file is actually somewhat of a side effect of the normal function of `pdb2gmx`, which is simply to produce a topology. However, since **many experimental structures determined by X-ray crystallography lack the resolution to assign hydrogen atom positions, these atoms must be built in to the model.** 
+The output coordinate file is actually somewhat of a side effect of the normal function of `pdb2gmx`, which is simply to produce a topology. However, since **many experimental structures determined by X-ray crystallography lack the resolution to assign hydrogen atom positions, these atoms must be built in to the model.**
 
 `pdb2gmx` does this, though it cannot build in other missing atoms, requiring either a complete experimental structure or the use of modeling software such as MODELLER to construct missing atoms.
 
@@ -109,11 +109,11 @@ Beyond the consideration of whether or not a force field has parameters for a gi
 
 ### 2.4 Water model
 
-The [[Water model]] is another important consideration, though one over which the user has less freedom. **Each force field was parametrized for use with a specific water model**. Therefore, the user is not entirely free to choose whichever model happens to be available without due consideration. 
+The [[Water model]] is another important consideration, though one over which the user has less freedom. **Each force field was parametrized for use with a specific water model**. Therefore, the user is not entirely free to choose whichever model happens to be available without due consideration.
 
-GROMACS provides a suggested water model for each force field; **unless there is good evidence to choose another model, the user should follow this recommendation for greatest accuracy.** 
+GROMACS provides a suggested water model for each force field; **unless there is good evidence to choose another model, the user should follow this recommendation for greatest accuracy.**
 
-> However, some studies have shown that different biomolecular force fields may be accurately combined with other water models, as is the case in this tutorial. The OPLS-AA force field was originally parametrized for use with the TIP3P water model, but it was subsequently shown that the combination of OPLS-AA with SPC/E yielded more accurate hydration free energies for protein side chains, suggesting this combination is a sufficiently accurate and self-consistent model for simulating proteins. 
+> However, some studies have shown that different biomolecular force fields may be accurately combined with other water models, as is the case in this tutorial. The OPLS-AA force field was originally parametrized for use with the TIP3P water model, but it was subsequently shown that the combination of OPLS-AA with SPC/E yielded more accurate hydration free energies for protein side chains, suggesting this combination is a sufficiently accurate and self-consistent model for simulating proteins.
 
 In the absence of any sufficiently strong justification or precedent, the user should always choose the recommended water model listed by `pdb2gmx`.
 
@@ -125,7 +125,7 @@ Once a starting structure has been chosen, the choice of force field and water m
 gmx pdb2gmx -f 1AKI_clean.pdb -o 1AKI_processed.gro -water spce
 ```
 
-The first prompt is for the user to select the force field that will be applied to the system. For this tutorial, choose option 15 for OPLS-AA, a widely used all-atom force field. 
+The first prompt is for the user to select the force field that will be applied to the system. For this tutorial, choose option 15 for OPLS-AA, a widely used all-atom force field.
 
 > An all-atom force field is used here for simplicity rather than introducing concepts of implicit hydrogen atoms as in united-atom force fields or coarse-grain representations.
 
@@ -153,17 +153,17 @@ Writing coordinate file...
 
 ## 3. Solvate system (p. 6)
 
-Simulating proteins in vacuo is not typically of biological interest, rather a **condensed-phase simulation** is more relevant. Thus, the next step in building the solvated protein system is to define a volume around the protein that will be filled with water. 
+Simulating proteins in vacuo is not typically of biological interest, rather a **condensed-phase simulation** is more relevant. Thus, the next step in building the solvated protein system is to define a volume around the protein that will be filled with water.
 
 There are several important considerations in doing so, and it is also important to explain the reason that these methods are employed.
 
 ### 3.1 Periodic boundary conditions (PBC)
 
-in a condensed-phase system, there are no "edges" or "boundaries" to the system that is being built. 
+in a condensed-phase system, there are no "edges" or "boundaries" to the system that is being built.
 
 > If the protein was solvated in **some volume of water** that was simply **surrounded by vacuum**, ultimately the system will develop into a **droplet** and water molecules that are on the surface of the droplet will tend to **evaporate over time**. ==In such cases, effects such as surface tension and poor energy conservation become important.==
 
-To solve this issue, most modern simulations employ what are called **periodic boundary conditions (PBC)**, in which identical copies of the system of interest are constructed around the **central "image"**, which is the system that a user actually constructs. 
+To solve this issue, most modern simulations employ what are called **periodic boundary conditions (PBC)**, in which identical copies of the system of interest are constructed around the **central "image"**, which is the system that a user actually constructs.
 
 - Atoms at the perceived "boundaries" of the central image will interact with periodic copies of atoms in the neighboring images.
 - Any atom that diffuses "outside" of the central image will reappear on the opposite face of the central image.
@@ -172,13 +172,13 @@ In truth, **there is no such thing as being "outside" of a box when employing PB
 
 ### 3.2 Minimum image convention
 
-In constructing a simulation system (the central image) for use with PBC, an important consideration is the **size of that central image**. Under most circumstances, it is desirable to simulate the solute of interest in **dilute (less concentrated) solution**. That is, the solute should not "see" any of its periodic copies in real space. 
+In constructing a simulation system (the central image) for use with PBC, an important consideration is the **size of that central image**. Under most circumstances, it is desirable to simulate the solute of interest in **dilute (less concentrated) solution**. That is, the solute should not "see" any of its periodic copies in real space.
 
-The underlying principle is called the **minimum image convention**, which states that to properly calculate the force on each atom, no atom should see multiple copies of the same atom within the short-range neighbor list. 
+The underlying principle is called the **minimum image convention**, which states that to properly calculate the force on each atom, no atom should see multiple copies of the same atom within the short-range neighbor list.
 
 - So how does one decide **the right box size** that will prevent atoms from experiencing duplicate forces?
 
-Each force field has a **set of required nonbonded cutoffs**. These cutoffs define the **radius around each atom** for which **short-range forces are calculated**. 
+Each force field has a **set of required nonbonded cutoffs**. These cutoffs define the **radius around each atom** for which **short-range forces are calculated**.
 
 - If the box is too small, such that this radius encompasses **more than half of any box dimension** (along the x, y, or z-axes), then **forces will be double-counted**, leading to **artifacts**.
 
@@ -224,7 +224,7 @@ Empty volume is filled with `spc216.gro` coordinate file (216 water molecules pr
 `solvent` will update the system topology with the number of water molecules added
 
 > *Where does the spc216.gro file come from?*
-> 
+>
 > GROMACS has a database of pre-built coordinate files for 3-, 4-, and 5-point models of water, located in `$GMXLIB` (an environment variable that refers to the `share/gromacs/top` subdirectory of wherever GROMACS is installed on the computer). GROMACS will search in this directory for files specified on the command line before looking in the working directory.
 
 ## 4. Ions
@@ -256,22 +256,22 @@ gmx grompp -f ions.mdp -c 1AKI_solv.gro -p topol.top -o ions.tpr
 >
 > ```
 >                       :-) GROMACS - gmx grompp, 2026.0 (-:
-> 
+>
 > Executable:   /usr/local/bin/gmx
 > Data prefix:  /usr/local
 > Working dir:  /home/jan/Documents/Personal/Diploma/data/gromacs_tutorial_1
 > Command line:
   > gmx grompp -f ions.mdp -c 1AKI_solv.gro -p topol.top -o ions.tpr
-> 
+>
 > Ignoring obsolete mdp entry 'ns_type'
 > Setting the LD random seed to -4311089
-> 
+>
 > Generated 165 of the 1596 non-bonded parameter combinations
-> 
+>
 > Excluding 3 bonded neighbours molecule type 'Protein_chain_A'
-> 
+>
 > Excluding 2 bonded neighbours molecule type 'SOL'
-> 
+>
 > WARNING 1 [file topol.top, line 8411]:
   > The GROMOS force fields have been parametrized with a physically
   > incorrect multiple-time-stepping scheme for a twin-range cut-off. When
@@ -285,37 +285,37 @@ gmx grompp -f ions.mdp -c 1AKI_solv.gro -p topol.top -o ions.tpr
   > https://gitlab.com/gromacs/gromacs/-/issues/2884, and a longer
   > explanation of our decision to remove physically incorrect algorithms can
   > be found at https://doi.org/10.26434/chemrxiv.11474583.v1 .
-> 
-> 
+>
+>
 > NOTE 1 [file topol.top, line 8411]:
   > System has non-zero total charge: 8.000000
   > Total charge should normally be an integer. See
   > https://manual.gromacs.org/current/user-guide/floating-point.html
   > for discussion on how close it should be to an integer.
-> 
-> 
-> 
+>
+>
+>
 > Analysing residue names:
 > There are:   129    Protein residues
 > There are: 10203      Water residues
 > Analysing Protein...
 > Number of degrees of freedom in T-Coupling group rest is 65184.00
 > The integrator does not provide a ensemble temperature, there is no system ensemble temperature
-> 
+>
 > NOTE 2 [file ions.mdp]:
   > You are using a plain Coulomb cut-off, which might produce artifacts.
   > You might want to consider using PME electrostatics.
-> 
-> 
-> 
+>
+>
+>
 > This run will generate roughly 3 Mb of data
-> 
+>
 > There were 2 NOTEs
-> 
+>
 > There was 1 WARNING
-> 
+>
 > Back Off! I just backed up ions.tpr to ./#ions.tpr.1#
-> 
+>
 > GROMACS reminds you: "Shit Happens" (Pulp Fiction)
 > ```
 

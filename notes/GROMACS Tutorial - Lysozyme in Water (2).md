@@ -4,81 +4,169 @@ tags:
   - Bioinformatika/Workflow
   - Bioinformatika/Software
 ---
-Link: http://www.mdtutorials.com/gmx/lysozyme/index.html
+Link: <http://www.mdtutorials.com/gmx/lysozyme/index.html>
 
----
+Check the `.envrc` for environment variables used throughout the document. It functions on `direnv`
 
-1. get the coordinates file from https://www.wwpdb.org/pdb?id=pdb_00001aki
+
+| var    | desc                                            |
+| ------ | ----------------------------------------------- |
+| `ROOT` | project root                                    |
+| `IN`   | varius input files                              |
+| `TOP`  | files revolving around topology, coordinates... |
+| `RUN`  | parameter files                                 |
+
+# Generate topology
+
+Get the coordinates file from <https://www.wwpdb.org/pdb?id=pdb_00001aki>
 
 ```bash
-wget https://wwpdb.org/pdb?download=https://files.wwpdb.org/pub/pdb/data/structures/divided/pdb/ak/pdb1aki.ent.gz -O 1aki.pdb
+wget https://wwpdb.org/pdb?download=https://files.wwpdb.org/pub/pdb/data/structures/divided/pdb/ak/pdb1aki.ent.gz -O $IN/1aki.pdb.gz
+gzip --decompress $IN/1aki.pdb.gz
 ```
 
-2. remove coordinates of water molecules
+Remove coordinates of water molecules
 
 ```bash
-grep -v HOH 1aki.pdb > 1aki_clean.pdb
+grep -v HOH $IN/1aki.pdb > $IN/1aki_clean.pdb
 ```
 
-3. obtain the CHARMM36 force field from http://mackerell.umaryland.edu/charmm_ff.shtml#gromacs
+Obtain the CHARMM36 force field from <http://mackerell.umaryland.edu/charmm_ff.shtml#gromacs>
 
 ```bash
-wget https://mackerell.umaryland.edu/download.php?filename=CHARMM_ff_params_files/charmm36-jul2022.ff.tgz -O charmm36-jul2022.ff.tgz
-sudo tar xf charm36-jul2022.ff.tgz --directory /usr/local/share/gromacs/top
+wget https://mackerell.umaryland.edu/download.php?filename=CHARMM_ff_params_files/charmm36-jul2022.ff.tgz -O $IN/charmm36-jul2022.ff.tgz
+
+sudo tar xf $IN/charmm36-jul2022.ff.tgz --directory /usr/local/gromacs/share/gromacs/top
 ```
 
-4. create the topology
-
-Select `CHARMM all-atom force field` from list.
+Create the topology. Select `CHARMM all-atom force field` from list.
 
 ```bash
-gmx pdb2gmx -f 1aki_clean.pdb -o 1aki_processed.gro -water tip3p
+mkdir topol && pushd topol
+
+gmx pdb2gmx \
+-f $IN/1aki_clean.pdb \
+-o 1aki_processed.gro \
+-water tip3p
+
+popd
 ```
 
 Take note of total charge: `Total charge 8.000 e`. ^be28e9
 
-5. Define the unit cell (box)
+# Define box and solvate
+
+Define the unit cell (box)
 
 ```bash
-gmx editconf -f 1aki_processed.gro -o 1aki_newbox.gro -c -d 1.2 -bt cubic
+gmx editconf \
+-f $TOP/1aki_processed.gro \
+-o $TOP/1aki_newbox.gro \
+-c -d 1.2 -bt cubic
 ```
 
-6. Fill the system with the solvent (water)
+Fill the system with the solvent (water)
 
 ```bash
-gmx solvate -cp 1aki_newbox.gro -cs spc216.gro -o 1aki_solv.gro -p topol.top
+gmx solvate \
+-cp $TOP/1aki_newbox.gro \
+-cs spc216.gro \
+-o $TOP/1aki_solv.gro \
+-p $TOP/topol.top
 ```
 
 `topol.top` will change accordingly:
 
-```
+```txt
 [ molecules ]
 ; Compound        #mols
 Protein_chain_A     1
 SOL             12597
 ```
 
-7. get the example molecular dynamics parameter file http://www.mdtutorials.com/gmx/lysozyme/Files/ions.mdp
+# Add ions
+
+Genion adds ions - replaces water molecules with ions the user specifies. As input it requires a run input file `.tpr`, which is makde by grompp (gromacs pre-processor). Grompp processes the coordinate and topology.
+
+Get the example molecular dynamics parameter file <http://www.mdtutorials.com/gmx/lysozyme/Files/ions.mdp>
 
 ```bash
-wget http://www.mdtutorials.com/gmx/lysozyme/Files/ions.mdp -O ions.mdp
+wget http://www.mdtutorials.com/gmx/lysozyme/Files/ions.mdp -O $IN/ions.mdp
 ```
 
-8. assemble the run input file (`.tpr`) - an atomic-level description of the system
+## grompp
+
+> gmx grompp (the gromacs preprocessor) reads a molecular topology file, checks the validity of the file, **expands the topology from a molecular description to an atomic description**. Eventually a binary file is produced that can serve as the sole input file for the MD program. The atom names in the coordinate file (option -c) are only read to generate warnings when they do not match the atom names in the topology. 
+
+Assemble the run input file (`.tpr`)
+
+### Options
+
+Input files:
+
+- `-f (grompp.mdp)` : grompp input file with MD parameters
+- `-c (conf.gro)` : Structure file, `gro g96 pdb brk ent esp tpr`
+- `-p (topol.top)` : Topology file
+
+Output files:
+
+- `-o (topol.tpr)` :  Portable xdr run input file
+- `-po (mdout.mdp)` : grompp input file with MD parameters
+- `-pp (processed.top) (Opt.)` :  Topology file
+
+> In reality, the .mdp file used at this step can contain any legitimate combination of parameters. I typically use an energy-minimization script, because they are very basic and do not involve any complicated parameter combinations.
+> **Please note** that the files provided with this tutorial are intended **only** for use with the CHARMM36 force field. Settings, particularly nonbonded interaction settings, will be different for other force fields.
+
+### Command
 
 ```bash
-gmx grompp -f ions.mdp -c 1aki_solv.gro -p topol.top -o ions.tpr
+gmx grompp \
+-f $IN/ions.mdp \
+-c $TOP/1aki_solv.gro \
+-p $TOP/topol.top \
+-o $RUN/ions.tpr \
+-po $RUN/mdout.mdp
 ```
 
-9. [[#^be28e9|add ions]]
+## genion
+
+> gmx genion randomly replaces solvent molecules with monoatomic ions. The user should add the ion molecules to the topology file or use the -p option to automatically modify the topology.
+
+Use the generated `tpr` file to [[#^be28e9|add ions]] with genion
+
+### Options
+
+Input files:
+
+- `-s (topol.tpr)` : xdr run input file
+
+Input/output files:
+
+- `-p (topol.top)` : 
+
+Output files:
+
+- `-o (out.gro)` : structure file
+
+Misc:
+
+- `-pname` : name of the positive ion
+- `-nname` : name of the negative ion
+- `-neutral` : this option will add enough ions to neutralize the system
+
+### Command
 
 ```bash
-gmx genion -s ions.tpr -o 1aki_solv_ions.gro -p topol.top -pname NA -nname CL -neutral
+gmx genion \
+-s $RUN/ions.tpr \
+-o $TOP/1aki_solv_ions.gro \
+-p $TOP/topol.top \
+-pname NA -nname CL -neutral
 ```
 
 When prompted, choose group 13 "SOL" for embedding ions. You do not want to replace parts of your protein with ions.
 
-```
+```txt
 Select a continuous group of solvent molecules
 Group     0 (         System) has 39751 elements
 Group     1 (        Protein) has  1960 elements
@@ -100,7 +188,7 @@ Select a group:
 
 Peep the changes in `[ molecules ]` directive:
 
-```
+```txt
 [ molecules ]
 ; Compound        #mols
 Protein_chain_A     1
@@ -108,4 +196,6 @@ SOL         12589
 CL               8
 ```
 
-10. 
+![[Pasted image 20260318143044.png#invert|300]]
+
+# Energy minimization
