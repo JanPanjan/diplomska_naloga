@@ -4,17 +4,20 @@ tags:
   - Bioinformatika/Workflow
   - Diplomska
   - Bioinformatics/MolecularDynamics
+  - gromacs
 related:
   - "[[tutorials-for-the-gromacs-2018-molecular-simulation-package.pdf]]"
   - "[[Molecular_Modeling_of_Proteins.pdf#page=17]]"
-  - "[[GROMACS Tutorial - Lysozyme in Water (2)]]"
+  - "[[Lysozyme in Water (website)]]"
 ---
+# MOVED INTO [[Lysozyme in Water (website)]]
+
 # Tasks
 
 - [x] Brush up on Force-fields ([[#2.3 Force fields]])
 - [x] What exactly is topology of a system ([[#2. Topology preparation (p. 4)]])
 - [x] What are water models ([[#2.4 Water model]])
-- [ ] Continue with [[#3. Solvate system (p. 6)]]
+- [x] Continue with [[#3. Solvate system (p. 6)]]
 
 # TLDR
 

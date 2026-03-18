@@ -3,10 +3,14 @@ tags:
   - Bioinformatics/MolecularDynamics
   - Bioinformatika/Workflow
   - Bioinformatika/Software
+  - gromacs
+aliases:
 ---
+# General notes
+
 Link: <http://www.mdtutorials.com/gmx/lysozyme/index.html>
 
-Check the `.envrc` for environment variables used throughout the document. It functions on `direnv`
+Check the `.envrc` for environment variables used throughout the document. It requires `direnv` to be installed and setup in your shell.
 
 
 | var    | desc                                            |
@@ -17,6 +21,8 @@ Check the `.envrc` for environment variables used throughout the document. It fu
 | `RUN`  | parameter files                                 |
 
 # Generate topology
+
+## coordinate file
 
 Get the coordinates file from <https://www.wwpdb.org/pdb?id=pdb_00001aki>
 
@@ -31,6 +37,8 @@ Remove coordinates of water molecules
 grep -v HOH $IN/1aki.pdb > $IN/1aki_clean.pdb
 ```
 
+## force field
+
 Obtain the CHARMM36 force field from <http://mackerell.umaryland.edu/charmm_ff.shtml#gromacs>
 
 ```bash
@@ -39,7 +47,15 @@ wget https://mackerell.umaryland.edu/download.php?filename=CHARMM_ff_params_file
 sudo tar xf $IN/charmm36-jul2022.ff.tgz --directory /usr/local/gromacs/share/gromacs/top
 ```
 
+## pdb2gmx
+
 Create the topology. Select `CHARMM all-atom force field` from list.
+
+### options
+
+TODO
+
+### command
 
 ```bash
 mkdir topol && pushd topol
@@ -56,7 +72,15 @@ Take note of total charge: `Total charge 8.000 e`. ^be28e9
 
 # Define box and solvate
 
+## editconf
+
 Define the unit cell (box)
+
+### options
+
+TODO
+
+### command
 
 ```bash
 gmx editconf \
@@ -65,7 +89,15 @@ gmx editconf \
 -c -d 1.2 -bt cubic
 ```
 
+## solvate
+
 Fill the system with the solvent (water)
+
+### options
+
+TODO
+
+### command
 
 ```bash
 gmx solvate \
@@ -100,7 +132,7 @@ wget http://www.mdtutorials.com/gmx/lysozyme/Files/ions.mdp -O $IN/ions.mdp
 
 Assemble the run input file (`.tpr`)
 
-### Options
+### options
 
 Input files:
 
@@ -117,7 +149,7 @@ Output files:
 > In reality, the .mdp file used at this step can contain any legitimate combination of parameters. I typically use an energy-minimization script, because they are very basic and do not involve any complicated parameter combinations.
 > **Please note** that the files provided with this tutorial are intended **only** for use with the CHARMM36 force field. Settings, particularly nonbonded interaction settings, will be different for other force fields.
 
-### Command
+### command
 
 ```bash
 gmx grompp \
@@ -134,7 +166,7 @@ gmx grompp \
 
 Use the generated `tpr` file to [[#^be28e9|add ions]] with genion
 
-### Options
+### options
 
 Input files:
 
@@ -154,7 +186,7 @@ Misc:
 - `-nname` : name of the negative ion
 - `-neutral` : this option will add enough ions to neutralize the system
 
-### Command
+### command
 
 ```bash
 gmx genion \
@@ -199,3 +231,11 @@ CL               8
 ![[Pasted image 20260318143044.png#invert|300]]
 
 # Energy minimization
+
+LEFT IT HERE:
+- [[strukture-bioloških-molekul-andrej-perdih.pdf#page=90]]
+- http://www.mdtutorials.com/gmx/lysozyme/05_EM.html
+
+### options
+
+### command

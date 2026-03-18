@@ -72,7 +72,7 @@ source /usr/local/gromacs/bin/GMXRC
 
 Docs: http://www.mdtutorials.com/gmx/lysozyme/.
 Article: [[tutorials-for-the-gromacs-2018-molecular-simulation-package.pdf]]
-Link: [[GROMACS Tutorial - Lysozyme in Water]]
+Link: [[Lysozyme in Water (article)]]
 
 ![[Pasted image 20260225203031.png#invert|400]]
 
