@@ -1,0 +1,4 @@
+    New chain ID            Original chain ID
+
+7n51-pdb-bundle1.pdb:
+           A                         A
