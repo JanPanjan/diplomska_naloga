@@ -1,6 +1,8 @@
 #!/bin/fish
-# directory s PDB datotekami
-set prot_dir "sub"
+
+pushd $ROOT
+
+set prot_dir ""
 set prot_dir_abs "$DB/$prot_dir"
 
 echo "Using $prot_dir_abs as data directory"
@@ -14,12 +16,15 @@ for log_file in "$log" "$tmp_log" "$processed_log"
     test -w "$log_file" || touch "$log_file"
 end
 
-# število vseh proteinov
-set n (count $prot_dir_abs/*.pdb)
+# resetiraj tmp log v vsakem primeru
+echo "" > "$tmp_log"
+
+set files $prot_dir_abs/*.pdb
+set n (count $files)
 set i 0
 set failed 0
 
-for protein in (ls "$prot_dir_abs")
+for protein in $files
     set i (math $i + 1)
     echo -n "[$i/$n] $protein: "
 
@@ -34,7 +39,7 @@ for protein in (ls "$prot_dir_abs")
     set chain (string split "_" "$db_entry" -f 2)
 
     # shrani stderr v tmp datoteko
-    sword2 -i "$DB/$protein" -o "$SWO" -c "$chain" > /dev/null 2> "$tmp_log"
+    sword2 -i "$protein" -o "$SWO" -c "$chain" > /dev/null 2> "$tmp_log"
 
     if test "$status" -ne 0
         # v primeru, da gre nekaj narobe, shrani log
@@ -58,3 +63,5 @@ echo "results in $SWO"
 
 # odstrani tmp datoteko
 rm "$tmp_log"
+
+popd
