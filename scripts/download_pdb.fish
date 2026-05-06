@@ -1,8 +1,8 @@
-#!/bin/fish
+#!/usr/bin/fish
 
 pushd $ROOT/atlas_db
 
-set prot_list "$ROOT/2024_11_18_ATLAS_pdb.txt"
+set prot_list "$ROOT/atlas_db/2024_11_18_ATLAS_pdb.txt"
 test -d tmp || mkdir tmp
 
 for protein in (cat "$prot_list")
