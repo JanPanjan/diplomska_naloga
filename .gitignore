@@ -1,2 +1,4 @@
 /atlas_db/pdb*/
 /sword_output/
+.RData
+.Rhistory

@@ -1,4 +1,5 @@
 #!/usr/bin/fish
+# prenese datoteke iz ATLAS baze
 
 pushd $ROOT/atlas_db
 
