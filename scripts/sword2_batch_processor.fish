@@ -1,9 +1,7 @@
 #!/bin/fish
 
+# glej .envrc
 pushd $ROOT
-
-set sword_path "$HOME/Programs/SWORD2/SWORD2.py"
-set conda_env_name "sword2"
 
 # error messages proteinov, ki so failali pri analizi
 set log "failed_proteins.log"
@@ -12,11 +10,12 @@ set tmp_log "tmp.log"
 # seznam proteinov, ki so uspešno prešli analizo
 # SWORD2 lahko fail-a po tem, ko že ustvari directory,
 # zato je potreben bolj robusten sistem kot le "ls $SWO | grep protein"
-set processed "processed_proteins.log" 
+set processed "processed_proteins.log"
 
 echo "using the following parameters:
 * data directory        $DB
-* SWORD2 path           $sword_path
+* output directory      $SWO
+* SWORD2 path           $SWORD_PATH
 * conda environment     $conda_env_name
 
 using the following log files:
@@ -52,7 +51,7 @@ set i 0
 set failed 0
 
 echo "==> activating conda environment"
-conda activate $conda_env_name
+conda activate $CONDA_ENV_NAME
 
 echo "==> running analyses"
 
@@ -61,24 +60,24 @@ for protein in $files
     set prot_fname (path basename "$protein" | string replace ".pdb" "")
     set chain (string split "_" $prot_fname -f 2)
     echo -n "[$i/$n] $protein: "
-	
+
     # če je protein že obdelan, pojdi na naslednjega
     grep -q "$prot_fname" "$processed" &&\
         echo "skip" && continue ||\
         echo -n "... "
-		
+
     # shrani stderr v tmp datoteko
-    $sword_path \
+    $SWORD_PATH \
         -i "$protein" \
         -c "$chain" \
-        -o "$SWO/$prot_fname" \
+        -o "$SWO" \
     > /dev/null 2> "$tmp_log"
-	
+
     if test "$status" -ne 0
         # v primeru, da gre nekaj narobe, shrani log
         echo "error. status: $status"
         set failed (math $failed + 1)
-        echo -e "--- $protein ---\n" >> "$log"
+        echo -e "--- $(date "+%Y-%m-%d %H:%M") $protein ---\n" >> "$log"
         cat "$tmp_log" >> "$log"
         echo "" >> "$log"
     else

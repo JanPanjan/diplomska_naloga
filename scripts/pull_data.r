@@ -1,3 +1,7 @@
+# WARN: glej/uporabi download_atlas.fish
+# WARN: glej/uporabi download_atlas.fish
+# WARN: glej/uporabi download_atlas.fish
+
 url <- "https://www.dsimb.inserm.fr/ATLAS/data/download/distributions/2024_11_18_ATLAS_pdb.txt"
 res <- httr::GET(url)
 pdbs <- httr::content(res) |>

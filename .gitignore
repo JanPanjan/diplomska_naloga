@@ -1,4 +1,6 @@
-/atlas_db/pdb*/
+/atlas_db/pdb*
 /sword_output/
-.RData
-.Rhistory
+/gromacs_tutorial_1/*
+tmp.log
+failed_proteins.log
+processed_proteins.log
