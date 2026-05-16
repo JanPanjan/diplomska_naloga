@@ -12,7 +12,8 @@ import zipfile
 import subprocess
 from pathlib import Path
 
-API_BASE = "https://www.dsimb.inserm.fr/ATLAS/api"
+# popravil: dodal ATLAS na konec
+API_BASE = "https://www.dsimb.inserm.fr/ATLAS/api/ATLAS"
 DEFAULT_DEST = "ATLAS_downloads"
 SUPPORTED_DATASETS = ["ATLAS", "chameleon", "DPF"]
 AVAILABLE_ARCHIVES = ["analysis", "protein", "total", "metadata"]
