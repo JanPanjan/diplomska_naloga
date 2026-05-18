@@ -1,4 +1,6 @@
 /atlas_db/pdb*
+/atlas_db/analysis
+/atlas_db/tmp
 /sword_output/
 /gromacs_tutorial_1/*
 tmp.log
