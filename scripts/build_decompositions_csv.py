@@ -31,6 +31,7 @@ field_names = [
     "start",
     "end",
 ]
+csv_name = "sword_results.csv"
 
 
 def domain_bounds(domain) -> tuple[int, int]:
@@ -86,7 +87,7 @@ def process_report(fname: str) -> list:
 
 
 if __name__ == "__main__":
-    with open("sword_results.csv", "w", newline="") as csvfile:
+    with open(csv_name, "w", newline="") as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(field_names)
         for fname in glob.glob("sword_output/*/*.json"):
