@@ -6,3 +6,5 @@
 tmp.log
 failed_proteins.log
 processed_proteins.log
+.RData
+.Rhistory
