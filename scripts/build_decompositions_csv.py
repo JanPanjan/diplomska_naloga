@@ -21,6 +21,7 @@ import json
 #   1a62_A  1      3         1       1      76  1     130<---| alt. 3
 #   1a62_A  1      3         1       2      0   48    94     |
 #
+
 field_names = [
     "protein",
     "aindex",

@@ -1,10 +1,11 @@
 library(dplyr)
-# library(ggplot2)
-# library(patchwork)
+library(ggplot2)
 
 getwd()
+# setwd("..")
+
 # WARN: beri build_decompositions_csv.py za format
-csv <- read.csv("../sword_results.csv", header = TRUE) |>
+csv <- read.csv("sword_results.csv", header = TRUE) |>
     as_tibble() |>
     group_by(protein)
 csv
@@ -13,43 +14,61 @@ csv
 multidomain <- csv |> filter(max(domain[partition == 0]) > 1)
 multidomain
 
-# WARN: za začetek samo po optimalnih particijah
+# WARN: samo po optimalnih particijah
 md_opt <- multidomain[multidomain$partition == 0, ]
 proteins <- unique(md_opt$protein)
 
-#* na hitro preveri kaka je distribucija števila domen
-md_opt$protein |> table() |> hist()
+prot_group <- function(d, p)
+{
+    d[d$protein == p, ]
+}
+
+sexy_hist <- function(data, labl=TRUE, b=nclass.Sturges(data), xl="", yl="")
+{
+    # set layout
+    lay_mat <- matrix(c(1, 2), nrow = 2)
+    lay <- layout(mat = lay_mat, heights = c(1, 5))
+
+    # plot
+    par(mar = c(0, 3, 0, 0))
+    boxplot(data,
+            horizontal = TRUE,
+            # ylim = c(min(data)-10, max(data)+10),
+            axes = FALSE)
+
+    par(mar = c(5, 3, 0, 0))
+    hist(data,
+         breaks = b,
+         border = "white",
+         # xlim = c(min(data)-10, max(data)+10),
+         xlab = xl,
+         ylab = yl,
+         labels = labl,
+         las = 2,
+         main = "")
+}
+
+# TODO: kakšna je distribucija števila domen
+md_opt$protein |> table() |> sexy_hist(xl = "št. domen")
 
 # največ jih ima 2 domeni, kar je super za nas i think
 which(table(md_opt$protein) == 2) |> length()
 
-prot_group <- function(d, p) {
-    d[d$protein == p, ]
-}
+# TODO: kakšna je distribucija velikost proteinov po dolžini aminokislinske verige
 
-# kakšna je distribucija velikost proteinov po dolžini aminokislinske verige
-{
-    ds <- c()
-    for (prot in proteins) {
-        df <- prot_group(md_opt, prot)
-        ds <- c(ds, max(df$end))
-    }
-    breaks <- nclass.Sturges(ds) - 1
-    hist(ds,
-         breaks = breaks,
-         border = "white",
-         xaxp = c(min(ds), max(ds), breaks),
-         xlab = "",
-         ylab = "",
-         labels = TRUE,
-         las = 2,
-         main = "Histogram dolžin aminokislinskih verig")
+ds <- c()
+for (prot in proteins) {
+    df <- prot_group(md_opt, prot)
+    ds <- c(ds, max(df$end))
 }
+sexy_hist(ds, xl = "dolžina verige")
 
-# ugotovi kateri kršijo razmerje 1:2, 1:3 v velikosti domen
+# TODO: ugotovi kateri kršijo razmerje 1:2, 1:3 v velikosti domen
 # večje kot 1:3 je slabo
 # iz start in end izračunaj velikost domene, primerjaj
-check_ratios <- function(df, cutoff=0.67) {
+
+check_ratios <- function(df, cutoff = 0.67)
+{
     keep <- c()
     for (prot in proteins) {
         df <- prot_group(md_opt, prot) |> as.data.frame() # tu nočem tibble
@@ -64,7 +83,7 @@ check_ratios <- function(df, cutoff=0.67) {
 
         # kombinacija po kombinaciji, razmerje med domenama
         # razmerje manjša/večja domena, da je v intervalu [0,1]
-        ratios <- apply(m, 1, \(x) min(dsizes[x]) / max(dsizes[x]) )
+        ratios <- apply(m, 1, \(x) min(dsizes[x]) / max(dsizes[x]))
 
         # ohrani protein, če razmerja ustrezajo
         if (all(ratios < cutoff)) {
@@ -78,88 +97,96 @@ check_ratios <- function(df, cutoff=0.67) {
 keep <- check_ratios(md_opt)
 length(keep)
 length(proteins) - length(keep)
+md_opt[which(md_opt$protein %in% keep), ]
+write.csv(file = "ratio_1v3.csv",
+          x = md_opt[which(md_opt$protein %in% keep), ],
+          quote = FALSE,
+          sep = ",",
+          row.names = FALSE)
 
 # bolj strogo
-keep <- check_ratios(md_opt, cutoff=0.5)
+keep <- check_ratios(md_opt, cutoff = 0.5)
 length(keep)
 length(proteins) - length(keep)
+write.csv(file = "ratio_1v2.csv",
+          x = md_opt[which(md_opt$protein %in% keep), ],
+          quote = FALSE,
+          sep = ",",
+          row.names = FALSE)
 
-md_keep <- md_opt[which(md_opt$protein %in% keep), ]
-md_keep
+md_keep <- read.csv(file = "ratio_1v2.csv", sep = ",", header = TRUE) |>
+    as_tibble() |>
+    group_by(protein)
 
 # TODO: PREVERI AMBIGUITY INDEX
-# če je 0 potem je za odstranit, drugače ... jih pustim(?)
-# kaj že pomeni, da je enak 1?
+# do 3 je okej in my book
 md_keep$aindex |> table()
 
 # TODO: PREVERI AUL VREDNOST
 # če je slaba potem odstrani... ampak slaba je kdaj? manj kot 50..?
-md_opt$AUL |> hist()
+# odvisno od podatkov..? Ali se sploh splača naprej? Preveri porazdelitev
 
-# TODO: primerjaj, če se bolj splača ohraniti particije, ki niso optimalne
-# ...
+# NOTE: vzame vse AUL vrednosti, moral bi vzeti min/max/mean vsakega proteina (?)
+# moram se znebit vseh proteinov, ki imajo v katerikoli domeni AUL manjši od cutoff
+# gledam porazdelitev "najslabših" domen med proteini, vsak protein ima enega predstavnika
 
-######################################################################## zastarelo ########
-csv <- csv[order(csv$OptimalQuality, decreasing = TRUE), ]
-head(csv)
-#     Protein AmbiguityIndex NbDomains OptimalQuality MaxQuality
-# 2  1ab1_A_A              0         1              8          8
-# 14 1bq8_A_A              0         1              8          8
-# 16 1bx7_A_A              0         1              8          8
-# 17 1bxy_A_A              0         1              8          8
-# 18 1bxy_B_B              0         1              8          8
-# 66 1fd3_A_A              0         1              8          8
+bad_doms <- data.frame()
 
-table(csv$AmbiguityIndex)
-#   0   1   2   3   4
-#  88 952 428 406  65
-table(csv$OptimalQuality)
-#    0    3    4    5    8
-# 1290  306  238   17   88
-table(csv$NbDomains)
-#   2   3   4   5   6   7
-# 390 114  49   4   3   1
-summary(csv)
-#       Protein     AmbiguityIndex    NbDomains     OptimalQuality    MaxQuality
-#  Length   :1939   Min.   :0.000   Min.   :1.000   Min.   :0.000   Min.   :1.000
-#  N.unique :1938   1st Qu.:1.000   1st Qu.:1.000   1st Qu.:0.000   1st Qu.:1.000
-#  N.blank  :   0   Median :1.000   Median :1.000   Median :0.000   Median :3.000
-#  Min.nchar:   8   Mean   :1.695   Mean   :1.414   Mean   :1.371   Mean   :2.631
-#  Max.nchar:   8   3rd Qu.:2.000   3rd Qu.:2.000   3rd Qu.:3.000   3rd Qu.:3.000
-#                   Max.   :4.000   Max.   :7.000   Max.   :8.000   Max.   :8.000
+for (prot in unique(md_keep$protein)) {
+    df <- prot_group(md_keep, prot)
 
-ggplot(csv) +
-    aes(x = NbDomains, y = OptimalQuality, color = AmbiguityIndex) +
-    geom_jitter() +
-    scale_color_continuous(palette = rainbow(length(unique(csv$AmbiguityIndex)))) +
-    theme_bw()
-ggsave("distribution.png")
+    # najdi najslabšo domeno
+    bad_dom <- which(df$AUL == min(df$AUL))[1]
 
-# vse z eno domeno je treba odstraniti
-csv <- csv[csv$NbDomains != 1, ]
+    # dodaj na seznam
+    bad_doms <- rbind(bad_doms, df[bad_dom, ])
+}
 
-csv$AmbiguityIndex <- factor(csv$AmbiguityIndex)
-csv$OptimalQuality <- factor(csv$OptimalQuality)
+bad_doms
 
-p1 <- ggplot(csv) +
-    aes(NbDomains) +
-    geom_bar(aes(fill = OptimalQuality)) +
-    scale_color_continuous(palette = rainbow(length(unique(csv$OptimalQuality)))) +
-    theme_bw()
+# vsak protein je notri
+all(group_keys(bad_doms) == group_keys(md_keep))
 
-p2 <- ggplot(csv) +
-    aes(NbDomains) +
-    geom_bar(aes(fill = AmbiguityIndex)) +
-    scale_color_continuous(palette = rainbow(length(unique(csv$AmbiguityIndex)))) +
-    theme_bw()
+# ni duplikatov
+all(bad_doms$protein == unique(bad_doms$protein))
 
-wrap_plots(p1, p2, nrow = 2)
-ggsave("multidomain_distribution.png")
+for (c in c(50, 75, 90))
+{
+    cutoff <- c
 
-# okej, torej. Boljše je, če je A-index majhen, right?
-# razvidno je, da imajo nekateri z 2 domenama index 1, kar je dobro
-# potem pa jih ima večina index 3, kar je okej, dokler imajo dobre Z-scores...
-csv[csv$AmbiguityIndex == 2, ] %>% head()
-csv[csv$AmbiguityIndex == 3, ] %>% head()
+    n_below <- sum(bad_doms$AUL < cutoff)
+    n_above <- sum(bad_doms$AUL >= cutoff)
 
-write.csv(unamb, file = "unambiguous.csv", quote = FALSE, row.names = FALSE)
+    ggplot(bad_doms, aes(x = AUL)) +
+        geom_histogram(aes(fill = after_stat(x) >= cutoff),
+                       breaks = seq(0, 100, length.out = 31),
+                       color = "white",
+                       linewidth = 0.4) +
+        # stat_bin(aes(label = after_stat(count)),
+        #          geom = "text",
+        #          breaks = seq(0, 100, length.out = 31),
+        #          vjust = -0.5,
+        #          size = 3.5) +
+        scale_fill_hue(labels = c(n_below, n_above)) +
+        scale_y_continuous(expand = expansion(mult = c(0, 0.1))) +
+        labs(title = paste("AUL vrednosti izbranih proteinov, cutoff", cutoff),
+             x = "AUL (%)",
+             y = "",
+             fill = "counts") +
+        theme_bw() +
+        theme(plot.title = element_text(hjust = 0.5, size = 15),
+              legend.position = c(0.15, 0.85),
+              legend.background = element_rect(fill = "white"),
+        )
+        ggsave(filename = paste0("aul", cutoff, ".png"))
+}
+
+# TODO: ohrani vse ki so kvalitetni
+selected <- bad_doms[which(bad_doms$AUL >= 75), ]$protein
+final <- filter(md_keep, protein %in% selected)
+
+write.csv(file = "clean_dataset.csv",
+          x = final,
+          sep = ",",
+          quote = FALSE,
+          row.names = FALSE)
