@@ -5,9 +5,16 @@ output:
         toc: true
 ---
 
+```{r message=FALSE, warning=FALSE}
+library(dplyr)
+library(ggplot2)
+library(patchwork)
+```
+
 # Format podatkov
 
-CSV (`sword_results.csv`) iz JSON datotek, ki jih vrne SWORD2. Vrstice se združujejo po proteinih in proteini po particijah.
+`sword_results.csv` vsebuje podatke iz JSON datotek, ki jih ustvari SWORD2.
+Vrstice se združujejo po proteinih in proteini po svojih particijah.
 
 | stolpec | opis |
 |:------- |:---- |
@@ -37,20 +44,13 @@ protein aindex partition quality domain AUL start end
 # Filtriranje glede na sledeče pogoje
 
 1. več kot ena domena v particiji
-2. razmerje med katerokoli domeno v particiji naj ne bo večje od 1:2 (največ 1:3)
+2. razmerje med katerokoli domeno v particiji naj ne bo večje od 1:2 (1:3?)
 3. ambiguity index med 1 in 3
 4. AUL vrednosti domen vsaj 75 (najmanj 50)
 
-Prvotno je na voljo 1938 proteinov (glej `Groups`).
+Prvotno je na voljo 1938 proteinov oziroma verig (glej `Groups`).
 
-```{r message=FALSE, warning=FALSE}
-library(dplyr)
-library(ggplot2)
-
-# getwd()
-# setwd("..")
-
-# WARN: beri build_decompositions_csv.py za format
+```{r}
 csv <- read.csv("sword_results.csv", header = TRUE) |>
     as_tibble() |>
     group_by(protein)
@@ -61,7 +61,7 @@ Uporabil sem **samo optimalne particije.**
 
 ## Število Domen
 
-Ostane jih 560 z dvema ali več domenami.
+Prvi korak je odstraniti vse, ki imajo samo eno domeno.
 
 ```{r}
 md_opt <- csv |>
@@ -71,12 +71,15 @@ md_opt
 table(md_opt$domain)
 ```
 
+Ostane jih 560 z dvema ali več domenami.
+
 ## Razmerja med velikostmi domen
 
+Določene domene morajo biti približno enako velike. Uporabil sem razmerji 1 proti 2 (meja 0,5) in 1 proti 3 (meja 0,3).
+`check_ratios` vrne seznam proteinov pri katerih so razmerja med vsako domeno večja od meje.
+
 ```{r}
-prot_group <- function(d, p) {
-    d[d$protein == p, ]
-}
+prot_group <- \(d, p) d[d$protein == p, ]
 
 # razmerje določa cutoff parameter, med 0 in 1
 check_ratios <- function(df, cutoff = 0.3) {
@@ -104,21 +107,16 @@ check_ratios <- function(df, cutoff = 0.3) {
 ```
 
 ```{r}
-# manj strogo
 keep03 <- check_ratios(md_opt, cutoff = 0.3)
 length(keep03) # koliko jih ostane
-length(unique(md_opt$protein)) - length(keep03) # koliko jih odpade
-md_opt[which(md_opt$protein %in% keep03), ]
-
-# bolj strogo
-keep05 <- check_ratios(md_opt, cutoff = 0.5)
-length(keep05) # koliko jih ostane
-length(unique(md_opt$protein)) - length(keep05) # koliko jih odpade
-md_opt[which(md_opt$protein %in% keep05), ]
 ```
 
-Tu sem se odločil ohraniti tiste, katerih razmerja so večja od 1:2.
-Zaradi tega jih izgubim 184, ki bi jih sicer ohranil, če bi uporabil 1:3.
+```{r}
+keep05 <- check_ratios(md_opt, cutoff = 0.5)
+length(keep05) # koliko jih ostane
+```
+
+Če bi uporabil razmerje 1:3 namesto 1:2, bi jih ostalo še 184 več.
 
 ```{r}
 kept03 <- md_opt[which(md_opt$protein %in% keep03), ]
@@ -126,13 +124,15 @@ kept05 <- md_opt[which(md_opt$protein %in% keep05), ]
 setdiff(kept03, kept05)
 ```
 
+Odločil sem se ohraniti tiste, ki passajo z mejo 0,5.
+
 ```{r}
 md_keep <- kept05
 ```
 
 ## A-index
 
-Ohranim tiste, katerih A-index je največ 3. Odstranim jih še 51.
+Manjši kot je A-index, boljša je dekompozicija, saj je manj _ambiguous_. Izločil sem vse, ki imajo index manj kot 4.
 
 ```{r}
 md_keep$aindex |> table()
@@ -143,12 +143,13 @@ md_keep
 ## AUL vrednosti
 
 Vse domene v particiji morajo imeti zadostne/dobre AUL vrednosti. 
-Za zadostne sem uporabil mejo 50, za dobre pa 75.
+Za zadostne sem uporabil mejo 50, za dobre mejo 75.
 
-Vzel sem najslabšo AUL vrednost med domenami v particiji. Če je najslabša večja
-od meje, potem protein ohranim.
+Vzel sem najslabšo AUL vrednost med domenami v particiji. Če je najslabša vrednost večja
+od meje, potem so vse ostale večje ali enake tej vrednosti. Protein v tem primeru ostane.
 
 ```{r}
+# vsebuje eno domeno na protein
 bad_doms <- data.frame()
 
 for (prot in unique(md_keep$protein)) {
@@ -164,27 +165,21 @@ for (prot in unique(md_keep$protein)) {
 bad_doms
 bad_doms$AUL |> summary()
 
-# zajame vse proteine
-all(group_keys(bad_doms) == group_keys(md_keep))
-
-# ni duplikatov
-all(bad_doms$protein == unique(bad_doms$protein))
+all(group_keys(bad_doms) == group_keys(md_keep)) # zajame vse proteine
+all(bad_doms$protein == unique(bad_doms$protein)) # ni duplikatov
 ```
 
-<!-- naredi to še enkrat -->
-
-```{r eval=FALSE}
-for (c in c(50, 75, 90))
-{
-    cutoff <- c
+```{r}
+plot_aul <- function(data, cutoff) {
+    aul <- data$AUL # vektor
+    df <- select(data, AUL) # tibble
 
     # razdeli na dva dela glede na mejo
-    n_below <- sum(bad_doms$AUL <= cutoff)
-    n_above <- sum(bad_doms$AUL > cutoff)
+    n_below <- sum(aul <= cutoff, na.rm = TRUE)
+    n_above <- sum(aul > cutoff, na.rm = TRUE)
 
-    ggplot(bad_doms, aes(x = AUL)) +
-        geom_histogram(aes(fill = after_stat(x) > cutoff),
-            breaks = seq(0, 100, length.out = 31),
+    ggplot(df, aes(x = AUL)) +
+        geom_histogram(aes(fill = AUL > cutoff),
             color = "white",
             linewidth = 0.4
         ) +
@@ -198,72 +193,47 @@ for (c in c(50, 75, 90))
         ) +
         theme_bw() +
         theme(
-            plot.title = element_text(hjust = 0.5, size = 15),
+            plot.title = element_text(hjust = 0.5, size = 12),
             legend.position = c(0.15, 0.85),
             legend.background = element_rect(fill = "white"),
+            panel.grid = element_blank()
         )
-    ggsave(filename = paste0("aul", cutoff, ".png"))
 }
 ```
 
-```
-$ magick aul50.png aul75.png aul90.png +append aul_distribution.png
+```{r message=FALSE, warning=FALSE, fig.width=12}
+p1 <- plot_aul(bad_doms, 50)
+p2 <- plot_aul(bad_doms, 75)
+p1 | p2
 ```
 
-![](./aul_distribution.png)
-
-Ostane jih 184 z zadostnimi oziroma 111 z dobrimi AUL vrednostmi.
+Ostane jih 184 z zadostnimi in 111 z dobrimi AUL vrednostmi.
 
 ```{r}
 sel <- bad_doms[which(bad_doms$AUL > 75), ]
-final05_75 <- filter(md_keep, protein %in% sel$protein)
-final05_75
+sel_prot <- sel$protein # proteini, ki ostanejo
+
+final <- filter(md_keep, protein %in% sel_prot)
+final
 ```
 
-```{r eval=FALSE}
+```{r}
+# 2 domeni
+final |>
+    tally() |>
+    filter(n == 2)
+
+# 3+ domene
+final |>
+    tally() |>
+    filter(n > 2)
+```
+
+```{r}
 write.csv(
-    file = "clean_dataset.csv",
-    x = final05_75,
-    sep = ",",
+    file = "sword_results_clean.csv",
+    x = final,
     quote = FALSE,
     row.names = FALSE
 )
-```
-
-# Koliko jih odpade zaradi 1:2 pogoja?
-
-```{r}
-md_keep <- kept03
-md_keep <- filter(md_keep, aindex < 4)
-bad_doms <- data.frame()
-
-for (prot in unique(md_keep$protein)) {
-    df <- prot_group(md_keep, prot)
-    bad_dom <- which(df$AUL == min(df$AUL))[1]
-    bad_doms <- rbind(bad_doms, df[bad_dom, ])
-}
-
-sel <- bad_doms[which(bad_doms$AUL > 75), ]
-final03_75 <- filter(md_keep, protein %in% sel$protein)
-
-setdiff(final03_75, final05_75)
-```
-
-# Koliko jih odpade zaradi 1:2 in meje 75?
-
-```{r}
-md_keep <- kept03
-md_keep <- filter(md_keep, aindex < 4)
-bad_doms <- data.frame()
-
-for (prot in unique(md_keep$protein)) {
-    df <- prot_group(md_keep, prot)
-    bad_dom <- which(df$AUL == min(df$AUL))[1]
-    bad_doms <- rbind(bad_doms, df[bad_dom, ])
-}
-
-sel <- bad_doms[which(bad_doms$AUL > 50), ]
-final03_50 <- filter(md_keep, protein %in% sel$protein)
-
-setdiff(final03_50, final05_75)
 ```
