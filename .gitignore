@@ -1,4 +1,6 @@
 /atlas_db/pdb*
+/atlas_db/TRAJ/*.xtc
+/atlas_db/TRAJ/*.tpr
 /atlas_db/analysis
 /atlas_db/tmp
 /sword_output/

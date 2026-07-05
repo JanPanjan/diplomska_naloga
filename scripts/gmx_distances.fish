@@ -11,10 +11,9 @@ test -d $target_tmp || mkdir -p $target_tmp
 
 function run -a protein
     # 1. dobi trajektorijo (xtc) in topologijo (tpr)
-    unzip "atlas_db/analysis/$protein" -d $target_tmp
+    unzip -q "atlas_db/analysis/$protein" -d $target_tmp
     find $target_tmp -name "*.xtc" -exec cp {} $target \;
     find $target_tmp -name "*.tpr" -exec cp {} $target \;
-    rm -rf "$target_tmp/*"
 
     # 2. dobi indekse od domen
     $ROOT/scripts/domain_inds.r $protein | read -L s1 s2 e1 e2
@@ -23,22 +22,20 @@ function run -a protein
 
     # 3. dobi razdalje
     for i in 1 2 3
-        set traj_f {$protein}_R{$i}.xtc
-        set top_f {$protein}_R{$i}.tpr
-        set out_f {$protein}_dist_R{$i}
+        set traj_f {$target}/{$protein}_R{$i}.xtc
+        set top_f {$target}/{$protein}_R{$i}.tpr
+        set out_f {$target}/{$protein}_dist_R{$i}
 
-        # poženi v ozadju da se paralelizira
         gmx pairdist \
             -f "$traj_f" \
             -s "$top_f" \
             -ref "$sel1" \
             -sel "$sel2" \
             -xvg none \
-            -o "$out_f" &> /dev/null
+            -o "$out_f" 2> /dev/null
     end
 
-    # počakaj vse da končajo
-    wait
+    rm -rf $target_tmp/*
 end
 
 set protein_list (cut -d ',' -f1 two_domains.txt)
@@ -46,9 +43,11 @@ set i 1
 set n (count $protein_list)
 
 for protein in $protein_list
-    echo -ne "\r\x1b[K[$i/$n] $protein ..."
+    echo -e "\r\x1b[K[$i/$n] $protein ..."
     ls $target | grep -q "^$protein.*xvg\$" || run $protein
     set i (math $i + 1)
 end
+
+rm -rf "$target_tmp"
 
 popd
