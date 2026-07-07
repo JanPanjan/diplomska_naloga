@@ -8,6 +8,7 @@ set target_tmp "$target/tmp"
 
 test -d $target || mkdir -p $target
 test -d $target_tmp || mkdir -p $target_tmp
+rm -rf $target_tmp/*
 
 function run -a protein
     # 1. dobi trajektorijo (xtc) in topologijo (tpr)
@@ -38,7 +39,7 @@ function run -a protein
     rm -rf $target_tmp/*
 end
 
-set protein_list (cut -d ',' -f1 two_domains.txt)
+set protein_list (cut -d ',' -f1 two_domains.csv)
 set i 1
 set n (count $protein_list)
 

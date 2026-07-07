@@ -1,6 +1,9 @@
 /atlas_db/pdb*
+/atlas_db/RMSF/*
 /atlas_db/TRAJ/*.xtc
 /atlas_db/TRAJ/*.tpr
+/atlas_db/TRAJ/*.dcd
+/atlas_db/PDB/*.pdb
 /atlas_db/analysis
 /atlas_db/tmp
 /sword_output/
@@ -10,3 +13,4 @@ failed_proteins.log
 processed_proteins.log
 .RData
 .Rhistory
+.venv
