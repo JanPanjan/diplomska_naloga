@@ -1,7 +1,11 @@
 #!/bin/fish
+# FIX!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# FIX!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# FIX!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# FIX!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 # glej .envrc
-pushd $ROOT
+pushd "$ROOT"
 
 # error messages proteinov, ki so failali pri analizi
 set log "failed_proteins.log"
@@ -16,7 +20,7 @@ echo "using the following parameters:
 * data directory        $DB
 * output directory      $SWO
 * SWORD2 path           $SWORD_PATH
-* conda environment     $conda_env_name
+* conda environment     $CONDA_ENV_NAME
 
 using the following log files:
 * failed proteins       $log, $tmp_log
@@ -35,7 +39,7 @@ echo "" > "$tmp_log"
 echo "==> checking past analysis integrity ($processed)"
 for protein in (cat "$processed")
     echo -n "$protein: "
-    ls $SWO | grep -q "$protein"
+    ls "$SWO" | grep -q "$protein"
     if test $status -ne 0
         echo "no output directory. removing from list"
         grep -v "$protein" "$processed" > "$processed" 2> /dev/null
@@ -45,20 +49,20 @@ for protein in (cat "$processed")
 end
 
 echo "==> obtaining list of PDB files"
-set files $DB/*.pdb
-set n (count $files)
+set files "$DB/*.pdb"
+set n (count "$files")
 set i 0
 set failed 0
 
 echo "==> activating conda environment"
-conda activate $CONDA_ENV_NAME
+conda activate "$CONDA_ENV_NAME"
 
 echo "==> running analyses"
 
-for protein in $files
+for protein in "$files"
     set i (math $i + 1)
     set prot_fname (path basename "$protein" | string replace ".pdb" "")
-    set chain (string split "_" $prot_fname -f 2)
+    set chain (string split "_" "$prot_fname" -f 2)
     echo -n "[$i/$n] $protein: "
 
     # če je protein že obdelan, pojdi na naslednjega
@@ -67,13 +71,13 @@ for protein in $files
         echo -n "... "
 
     # shrani stderr v tmp datoteko
-    $SWORD_PATH \
+    "$SWORD_PATH" \
         -i "$protein" \
         -c "$chain" \
         -o "$SWO" \
     > /dev/null 2> "$tmp_log"
 
-    if test "$status" -ne 0
+    if test $status -ne 0
         # v primeru, da gre nekaj narobe, shrani log
         echo "error. status: $status"
         set failed (math $failed + 1)

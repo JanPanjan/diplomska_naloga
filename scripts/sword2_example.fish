@@ -1,4 +1,8 @@
 #!/bin/fish
+# FIX!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# FIX!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# FIX!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# FIX!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 set protein "1a62.pdb"
 
 # dobi ID od trenutnega proteina
@@ -16,10 +20,6 @@ set chain (string split "_" "$db_entry" -f 2)
 echo "$chain"
 #> A
 
-# sword2 je wrapper script, ga bom vseeno priložil
-#> #!/bin/bash
-#> # move to sword's directory prior to execution and run it from there
-#> pushd /home/jan/Programs/SWORD2
-#> exec /home/jan/Programs/miniconda3/envs/sword2/bin/python /home/jan/Programs/SWORD2/SWORD2.py "$@"
-#> popd
-sword2 -i "$DB/$protein" -o "$SWO" -c "$chain"
+conda activate "$CONDA_ENV_NAME"
+"$SWORD_PATH" -i "$DB/$protein" -o "$SWO" -c "$chain"
+conda deactivate
