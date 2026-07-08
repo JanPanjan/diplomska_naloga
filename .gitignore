@@ -1,13 +1,29 @@
-/atlas_db/pdb*
+# pdbji iz pdbja. unused
+/atlas_db/pdbs.tar.xz
+
+# ne pushat cele baze prosim
+/atlas_db/analysis/*
+/atlas_db/COM/*
+/atlas_db/PDB/*
 /atlas_db/RMSF/*
-/atlas_db/TRAJ/*.xtc
-/atlas_db/TRAJ/*.tpr
-/atlas_db/TRAJ/*.dcd
-/atlas_db/PDB/*.pdb
-/atlas_db/analysis
-/atlas_db/tmp
-/sword_output/
-/gromacs_tutorial_1/*
+/atlas_db/TRAJ/*
+/atlas_db/tmp/*
+/sword_output/*
+
+# pustimo en protein, why the hell not
+!atlas_db/analysis/
+!atlas_db/analysis/1dd3_A*
+!atlas_db/COM/
+!atlas_db/COM/1dd3_A*
+!atlas_db/RMSF/
+!atlas_db/RMSF/1dd3_A*
+!atlas_db/TRAJ/
+!atlas_db/TRAJ/1dd3_A*
+!sword_output/
+!sword_output/1dd3_A*
+
+# ostalo
+/gromacs_tutorial_1
 tmp.log
 failed_proteins.log
 processed_proteins.log
