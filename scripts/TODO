@@ -1,0 +1,5 @@
+posodobi vse R skripte, da bodo imeli:
+
+setwd(Sys.getenv("ROOT"))
+
+namesto relativnih poti

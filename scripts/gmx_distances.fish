@@ -3,7 +3,8 @@
 
 pushd "$ROOT"
 
-set target "$ROOT/atlas_db/TRAJ"
+set traj "$ROOT/atlas_db/TRAJ"
+set target "$ROOT/atlas_db/COM"
 set target_tmp "$target/tmp"
 
 test -d $target || mkdir -p $target
@@ -23,9 +24,12 @@ function run -a protein
 
     # 3. dobi razdalje
     for i in 1 2 3
-        set traj_f {$target}/{$protein}_R{$i}.xtc
-        set top_f {$target}/{$protein}_R{$i}.tpr
-        set out_f {$target}/{$protein}_dist_R{$i}
+        set traj_f {$traj}/{$protein}_R{$i}.xtc
+        set top_f {$traj}/{$protein}_R{$i}.tpr
+        set out_f {$traj}/{$protein}_dist_R{$i}
+
+        echo traj_f top_f out_f
+        continue
 
         gmx pairdist \
             -f "$traj_f" \

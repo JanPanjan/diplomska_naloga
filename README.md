@@ -1,4 +1,4 @@
-# \<ime diplomske naloge>
+# \<naslov diplomske naloge>
  
 Repository vsebuje vso kodo, analize, izračune, s katerimi sem raziskoval proteine iz
 [ATLAS MD](https://www.dsimb.inserm.fr/ATLAS/about.html) za diplomsko nalogo.
@@ -19,30 +19,20 @@ Repository vsebuje vso kodo, analize, izračune, s katerimi sem raziskoval prote
 - [`sword_results_clean.csv`](./sword_results_clean.csv) : ožji nabor proteinov, ki so bili izbrani za nadaljne analize.
 - [`two_domains.csv`](./two_domains.csv) : bolj berljiv format za meje domen izbranih proteinov (glej [`two_domains.r`](./scripts/two_domains.r)).
     
-NOTE: popravi pipeline za `xvg` datoteke, da se pospravijo v `COM`
-
 # Setup
 
-Vse je bilo opravljeno na Fedora Linux 44 (Workstation Edition). 
+Testirano na Fedora Linux 44 (Workstation Edition). 
 
-```sh
-dnf install \
-    direnv-2.37.1-6.fc44.x86_64 \
-    python3-3.14.6-1.fc44.x86_64 \
-    R-4.6.0-2.fc44.x86_64
-```
-
-Za [SWORD2](https://github.com/DSIMB/SWORD2) sledi objavljenim navodilom. 
-
-- virtualenv
-- mdconvert
-
-- bio3d
-- dplyr
-- ggplot2
-- ...
-
-Sledi navodilom na [Installation guide - GROMACS 2026.3](https://manual.gromacs.org/current/install-guide/index.html).
+- Python 3.14.6: <https://www.python.org/downloads/release/python-3146/>
+    - SWORD2: <https://github.com/DSIMB/SWORD2>. 
+    - mdconvert: <https://mdtraj.org/1.9.4/mdconvert.html>
+- R 4.6.1: <https://www.r-project.org/>
+    - bio3d 2.4-5 <https://thegrantlab.org/bio3d/>
+    - dplyr 1.2.1: <https://dplyr.tidyverse.org//>
+    - ggplot2 4.0.3: <https://ggplot2.tidyverse.org/>
+    - patchwork 1.3.2: <https://patchwork.data-imaginist.com/index.html>
+    - plotly 4.12.0: <https://plotly.com/r/>
+- GROMACS 2026.3: <https://manual.gromacs.org/current/install-guide/index.html>
 
 # Pipeline
 
