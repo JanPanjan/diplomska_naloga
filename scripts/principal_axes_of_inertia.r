@@ -3,6 +3,7 @@ library(bio3d)
 library(plotly)
 
 setwd(Sys.getenv("ROOT"))
+getwd()
 
 # koordinate, domene
 pdbs <- list.files("atlas_db/PDB", "*.pdb", full.names = TRUE)
@@ -44,43 +45,50 @@ mass_B <- atom2mass(pdb$atom[inds_B$atom, "elety"])
 com_A <- com.xyz(coords_A, mass = mass_A)
 com_B <- com.xyz(coords_B, mass = mass_B)
 
-# centrira koordinate glede na masni center
-# * coords: vektor koordinat, [x1,y2,z1,x2,y2,z2,...]
-# * com: vektor, ki predstavlja masni center, [x,y,z]
-# * vrne n×3 matriko, n×(x,y,z)
-center_coords <- function(coords, com) {
+# bio3d objekti imajo koordinate v obliki [x1,y2,z1,x2,...], kar
+# je nadležno
+# funkcija pretvori koordinate v n×3 matriko, n×(x,y,z), tako kot
+# vrne com.xyz
+matrix_coords <- function(coords) {
     n <- length(coords)
 
-    # indeksi posameznih osi
     x_inds <- seq(1, n, 3)
     y_inds <- seq(2, n, 3)
     z_inds <- seq(3, n, 3)
 
-    # centrira glede na masni center
-    X <- c[x_inds] - com[1]
-    Y <- c[y_inds] - com[2]
-    Z <- c[z_inds] - com[3]
+    X <- coords[x_inds]
+    Y <- coords[y_inds]
+    Z <- coords[z_inds]
 
-    # sestavi matriko iz novih koordinat
+    # zapolni po stolpcih
     m <- matrix(c(X, Y, Z), ncol = 3, byrow = FALSE)
     colnames(m) <- c("x", "y", "z")
     m
 }
 
-# vsak element seznama je n×3 matrika centriranih koordinat
+# vsaka vrstica hrani koordinate za frame
+# od tu naprej bodo koordinate shranjene v seznamu matrik za vsak frame
+crds_A <- list()
+crds_B <- list()
+
+for (i in seq_len(nrow(coords_A))) {
+    crds_A[[i]] <- matrix_coords(coords_A[i, ])
+    crds_B[[i]] <- matrix_coords(coords_B[i, ])
+}
+
+# centrira koordinate glede na masni center
 centered_A <- list()
 centered_B <- list()
 
-for (i in seq_len(nrow(coords_A))) {
-    centered_A[[i]] <- center_coords(coords_A[i, ], com_A[i, ])
-    centered_B[[i]] <- center_coords(coords_B[i, ], com_B[i, ])
+for (i in seq_along(crds_A)) {
+    # vzame matriko koordinat i-tega frame-a
+    # vsaki vrstici odšteje koordinate masnega centra
+    centered_A[[i]] <- apply(crds_A[[i]], 1, \(row) row - com_A[i, ]) |> t()
+    centered_B[[i]] <- apply(crds_B[[i]], 1, \(row) row - com_B[i, ]) |> t()
 }
 
-# izračuna "inertia tensor" s katerim določimo principal axes of
-# inertia
-# * coords: n×3 matrika koordinat
-# * masses: atomske mase
-# * vrne 3×3 matriko
+# izračuna inertia tensor s katerim določimo vztrajnostne osi (principal
+# axes of inertia)
 inertia_tensor <- function(coords, masses) {
     X <- coords[, "x"]
     Y <- coords[, "y"]
@@ -112,22 +120,31 @@ for (i in seq_along(centered_A)) {
     inertia_B[[i]] <- inertia_tensor(centered_B[[i]], mass_B)
 }
 
-## TODO: iskanje glavnih osi
-# eig <- eigen(I)
-## NOTE: columns = vectors
-# eigvecs <- eig$vectors
-# eigvals <- eig$values
-# colnames(eigvecs) <- c("V1_Max", "V2_Mid", "V3_Min")
+# določi glavne osi preko lastnih vrednosti in lastnih vektorjev
+eigen(inertia_A[[1]])$values
+axes <- eigen(inertia_A[[1]])$vectors
 
+# --------------------------------------------------------
 # plot!
-plot_coords <- as.data.frame(centered_A[[1]])
+
+c_A <- centered_A[[1]] |> as.data.frame()
+c_B <- centered_B[[1]] |> as.data.frame()
+
 fig <- plot_ly() %>%
     add_trace(
-        data = plot_coords,
+        data = c_A,
         x = ~x, y = ~y, z = ~z,
         type = "scatter3d",
         mode = "markers",
-        marker = list(size = 3, color = "#a6afb8", opacity = 0.7),
+        marker = list(size = 3, color = "#89a3bc", opacity = 0.7),
+        name = "Atomi proteina (1dd3_A)"
+    ) %>%
+    add_trace(
+        data = c_B,
+        x = ~x, y = ~y, z = ~z,
+        type = "scatter3d",
+        mode = "markers",
+        marker = list(size = 3, color = "#b68b8b", opacity = 0.7),
         name = "Atomi proteina (1dd3_A)"
     )
 
