@@ -1,4 +1,6 @@
 #!/bin/Rscript
+# izračuna kote med vztrajnostnimi osemi domen
+
 library(bio3d)
 # library(plotly)
 
@@ -8,7 +10,6 @@ pdbs <- list.files("atlas_db/PDB", "*.pdb", full.names = TRUE)
 dcds <- list.files("atlas_db/TRAJ", "*.dcd", full.names = TRUE)
 domains <- read.csv("two_domains.csv")
 n_all <- nrow(domains)
-n_p <- 1
 
 target <- file.path("atlas_db", "PAI")
 if (!dir.exists(target)) dir.create(target)
@@ -68,7 +69,7 @@ inertia_tensor <- function(coords, masses) {
 # 3     x  x  x
 # ...
 run <- function(protein) {
-    cat("[", i, "/", n_all, "]", protein, "...\n")
+    cat("[", i, "/", n_all, "]", protein, "\n")
 
     pdbfile <- grep(protein, pdbs, value = TRUE)
     dcdfiles <- grep(protein, dcds, value = TRUE)
@@ -80,21 +81,50 @@ run <- function(protein) {
     # najdi meje domen
     domain_bounds <- domains[domains$protein == protein, -1] |> unlist()
 
-    # določimo kote za vsak frame za vsak replikat
-    r1 <- run_replicate(dcdfiles[1], pdb, domain_bounds)
-    r2 <- run_replicate(dcdfiles[2], pdb, domain_bounds)
-    r3 <- run_replicate(dcdfiles[3], pdb, domain_bounds)
+    # izberi domeni
+    inds_A <- atom.select(pdb, "noh", resno = domain_bounds[1]:domain_bounds[2])
+    inds_B <- atom.select(pdb, "noh", resno = domain_bounds[3]:domain_bounds[4])
 
-    # NOTE: lahko bi dal, da se nastavijo NA vrednosti, če nimajo
-    # enakih dolžin...
-    min_frames <- min(length(r1), length(r2), length(r3))
-    n_frames <- 1:min_frames
+    # najde mase atomov za izračun masnega centra
+    mass_A <- atom2mass(pdb$atom[inds_A$atom, "elety"])
+    mass_B <- atom2mass(pdb$atom[inds_B$atom, "elety"])
+
+    # določimo kote za vsak frame za vsak replikat
+    # v enem prehodu izračunamo vse tri glavne osi
+    r1 <- run_replicate(dcdfiles[1], pdb, inds_A, inds_B, mass_A, mass_B)
+    r2 <- run_replicate(dcdfiles[2], pdb, inds_A, inds_B, mass_A, mass_B)
+    r3 <- run_replicate(dcdfiles[3], pdb, inds_A, inds_B, mass_A, mass_B)
+
+    n_frames <- max(nrow(r1))
+
+    # nimajo vsi enako število frame-ov
+    # na koncu skopira zadnjo vrstico da se zapolni do željene velikosti
+    pad_replicate <- function(replicate, target_len) {
+        cur_len <- nrow(replicate)
+        if (cur_len < target_len) {
+            # če je začetna dolžina 3, željena pa 5 bo idx = [1,2,3,3,3]
+            idx <- c(1:cur_len, rep(cur_len, target_len - cur_len))
+            replicate <- replicate[idx, ]
+            replicate$frame <- 1:target_len
+        }
+        replicate
+    }
+
+    r1 <- pad_replicate(r1, n_frames)
+    r2 <- pad_replicate(r2, n_frames)
+    r3 <- pad_replicate(r3, n_frames)
 
     angles <- data.frame(
-        "frame" = n_frames,
-        "R1" = r1[n_frames],
-        "R2" = r2[n_frames],
-        "R3" = r3[n_frames]
+        frame = 1:n_frames,
+        R1_p1 = r1$P1,
+        R1_p2 = r1$P2,
+        R1_p3 = r1$P3,
+        R2_p1 = r2$P1,
+        R2_p2 = r2$P2,
+        R2_p3 = r2$P3,
+        R3_p1 = r3$P1,
+        R3_p2 = r3$P2,
+        R3_p3 = r3$P3
     )
 
     out <- paste0(protein, "_angles.csv")
@@ -102,16 +132,14 @@ run <- function(protein) {
     write.csv(angles, csv, quote = FALSE, row.names = FALSE)
 }
 
-# * izračuna kot med prvima vztrajnostnima osema domen za vsak frame
+# * izračuna kot med vsemi tremi vztrajnostnimi osmi domen za vsak frame
 #   v trajektoriji
-# * vrne vektor števil (kotov)
-run_replicate <- function(dcdfile, pdb, domain_bounds) {
+# * vrne data.frame z stolpci R1, R2, R3
+run_replicate <- function(dcdfile, pdb, inds_A, inds_B, mass_A, mass_B) {
+    cat(dcdfile, "... ")
+
     # naloži trajektorijo
     dcd <- read.dcd(dcdfile, verbose = FALSE)
-
-    # izberi domeni
-    inds_A <- atom.select(pdb, "noh", resno = domain_bounds[1]:domain_bounds[2])
-    inds_B <- atom.select(pdb, "noh", resno = domain_bounds[3]:domain_bounds[4])
 
     # poravnava na prvo domeno !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     aligned <- fit.xyz(
@@ -126,47 +154,48 @@ run_replicate <- function(dcdfile, pdb, domain_bounds) {
     coords_A <- aligned[, inds_A$xyz]
     coords_B <- aligned[, inds_B$xyz]
 
-    # najde mase atomov za izračun masnega centra
-    mass_A <- atom2mass(pdb$atom[inds_A$atom, "elety"])
-    mass_B <- atom2mass(pdb$atom[inds_B$atom, "elety"])
-
     # preko koordinat in mas izračuna masne centre za vsak frame
     com_A <- com.xyz(coords_A, mass = mass_A)
     com_B <- com.xyz(coords_B, mass = mass_B)
 
-    # izračuna kote med vztrajnostnima osema za vsak frame
-    # vrne vektor
-    sapply(1:n_frames, \(i) {
-        # od tu naprej bodo koordinate shranjene v seznamu matrik
+    # izračuna kot med vsakimi od treh osi v frame-u
+    # vektor dolžine 3
+    angles <- lapply(1:n_frames, \(i) {
         crds_A <- matrix_coords(coords_A[i, ])
         crds_B <- matrix_coords(coords_B[i, ])
 
-        # centrira koordinate glede na masni center
+        # centrira glede na masni center
         centered_A <- scale(crds_A, center = com_A[i, ], scale = FALSE)
         centered_B <- scale(crds_B, center = com_B[i, ], scale = FALSE)
 
-        # določi glavne osi preko lastnih vrednosti in lastnih vektorjev
-        # inertia tensorjev
-        # najmanjši vztrajnostni moment ima vektor z najmanjšo lastno
-        # vrednostjo: zadnji vektor matrike
         inertia_A <- inertia_tensor(centered_A, mass_A)
         inertia_B <- inertia_tensor(centered_B, mass_B)
 
+        # lastni vektorji
         axes_A <- eigen(inertia_A)$vectors
         axes_B <- eigen(inertia_B)$vectors
-        paxis_A <- axes_A[, 3]
-        paxis_B <- axes_B[, 3]
 
-        # izračuna kot med osema preko skalarnega produkta
-        # x * y = |x||y|cosA = cosx, ker imamo enotne vektorje
-        # A = acos(x * y)
-        # zaradi sign flip ambiguity.. absolutna vrednost
-        sum(paxis_A * paxis_B) |>
-            abs() |>
-            acos()
+        vapply(1:3, \(axis) {
+            paxis_A <- axes_A[, axis]
+            paxis_B <- axes_B[, axis]
 
-        # WARN: koti so v radianih!!!
+            sum(paxis_A * paxis_B) |>
+                abs() |>
+                acos()
+        }, numeric(1))
     })
+
+    # vse elemente seznama združi v matriko
+    angles_mat <- do.call(rbind, angles)
+
+    cat("done\n")
+
+    data.frame(
+        frame = seq_len(n_frames),
+        P1 = angles_mat[, 1],
+        P2 = angles_mat[, 2],
+        P3 = angles_mat[, 3]
+    )
 }
 
 # za prikaz proteina, domen in prvih osi s plottly
@@ -243,9 +272,7 @@ run_frame_PLOT <- function(frame, inertia_tensors, original_coords, centered_coo
 
 ### main #####################################################################
 
-for (i in 1:nrow(domains)) {
-    run(domains$protein[i])
-}
+for (i in 1:nrow(domains)) run(domains$protein[i])
 
 # run_frame_PLOT(
 #     frame = 100,
