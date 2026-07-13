@@ -13,10 +13,9 @@ domains <- read.csv("two_domains.csv")
 target <- file.path("atlas_db", "COM")
 if (!dir.exists(target)) dir.create(target, recursive = TRUE)
 
-# csv z imenom {protein}_com_dist.csv
-#
-# stolpci R1-R3
-# vsaka vrstica vsebuje razdaljo med masnima centroma domen v trenutnem frame-u
+# * csv z imenom {protein}_com_dist.csv
+# * stolpci R1-R3
+# * vsaka vrstica vsebuje razdaljo med masnima centroma domen v trenutnem frame-u
 #
 # frame R1 R2 R3
 # 1     x  x  x
@@ -60,7 +59,8 @@ run <- function(protein) {
     write.csv(df, csv, quote = FALSE, row.names = FALSE)
 }
 
-# izračuna razdalje med masnimi centri
+# * izračuna razdalje med masnimi centri domen
+# * vrne vektor števil (razdalj)
 run_replicate <- function(dcdfile, pdb, domain_bounds) {
     dcd <- read.dcd(dcdfile, verbose = FALSE)
 
@@ -86,5 +86,7 @@ run_replicate <- function(dcdfile, pdb, domain_bounds) {
         rowSums() |>
         sqrt()
 }
+
+### main #####################################################################
 
 for (p in domains$protein) run(p)
