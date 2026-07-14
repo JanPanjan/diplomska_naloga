@@ -61,7 +61,7 @@ run <- function(protein) {
         "R3" = r3[ns]
     )
 
-    out <- paste0(protein, "_com_dist.csv")
+    out <- paste0(protein, "_dist.csv")
     csv <- file.path(target, out)
     write.csv(df, csv, quote = FALSE, row.names = FALSE)
 }

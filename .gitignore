@@ -30,6 +30,7 @@
 !sword_output/1dd3_A*
 
 # ostalo
+/scripts/n.r
 1dd3_A_fit_A.*
 /gromacs_tutorial_1
 tmp.log
