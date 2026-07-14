@@ -272,7 +272,7 @@ run_frame_PLOT <- function(frame, inertia_tensors, original_coords, centered_coo
 
 ### main #####################################################################
 
-for (i in 1:nrow(domains)) run(domains$protein[i])
+for (i in 1:n_all) run(domains$protein[i])
 
 # run_frame_PLOT(
 #     frame = 100,

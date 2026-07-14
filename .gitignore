@@ -4,6 +4,7 @@
 # ne pushat cele baze prosim
 /atlas_db/analysis/*
 /atlas_db/COM/*
+/atlas_db/PAI/*
 /atlas_db/PDB/*
 /atlas_db/RMSF/*
 /atlas_db/TRAJ/*
@@ -12,17 +13,24 @@
 
 # pustimo en protein, why the hell not
 !atlas_db/analysis/
-!atlas_db/analysis/1dd3_A*
 !atlas_db/COM/
-!atlas_db/COM/1dd3_A*
+!atlas_db/PAI/
+!atlas_db/PDB/
+!atlas_db/PDB_chained/
 !atlas_db/RMSF/
-!atlas_db/RMSF/1dd3_A*
 !atlas_db/TRAJ/
-!atlas_db/TRAJ/1dd3_A*
 !sword_output/
+!atlas_db/analysis/1dd3_A*
+!atlas_db/COM/1dd3_A*
+!atlas_db/PAI/1dd3_A*
+!atlas_db/PDB/1dd3_A*
+!atlas_db/PDB_chained/1dd3_A*
+!atlas_db/RMSF/1dd3_A*
+!atlas_db/TRAJ/1dd3_A*
 !sword_output/1dd3_A*
 
 # ostalo
+1dd3_A_fit_A.*
 /gromacs_tutorial_1
 tmp.log
 failed_proteins.log

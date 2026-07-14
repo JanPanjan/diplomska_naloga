@@ -5,9 +5,8 @@ library(bio3d)
 # POMEMBNO: xtc trajektorije sem predhodno z mdconvert pretvoril v dcd format
 pdbs <- list.files(path = "atlas_db/PDB", pattern = "pdb", full.names = TRUE)
 dcds <- list.files(path = "atlas_db/TRAJ", pattern = "dcd", full.names = TRUE)
-
-# proteini in domene
 domains <- read.csv("two_domains.csv")
+n_all <- nrow(domains)
 
 # target dir
 target <- file.path("atlas_db", "COM")
@@ -23,7 +22,7 @@ if (!dir.exists(target)) dir.create(target, recursive = TRUE)
 # 3     x  x  x
 # ...
 run <- function(protein) {
-    cat(protein, "...\n")
+    cat("[", i, "/", n_all, "]", protein, "\n")
 
     # 3 replikati, 3 datoteke na protein
     dcdfiles <- grep(protein, dcds, value = TRUE)
@@ -37,10 +36,18 @@ run <- function(protein) {
     # najdi meje domen
     domain_bounds <- domains[domains$protein == protein, -1] |> unlist()
 
+    # določi kje sta domeni, ignoriraj vodike pri selekciji
+    inds_A <- atom.select(pdb, "noh", resno = domain_bounds[1]:domain_bounds[2])
+    inds_B <- atom.select(pdb, "noh", resno = domain_bounds[3]:domain_bounds[4])
+
+    # najde mase atomov za izračun masnega centra
+    mass_A <- atom2mass(pdb$atom[inds_A$atom, "elety"])
+    mass_B <- atom2mass(pdb$atom[inds_B$atom, "elety"])
+
     # razdalje za vsak replikat
-    r1 <- run_replicate(dcdfiles[1], pdb, domain_bounds)
-    r2 <- run_replicate(dcdfiles[2], pdb, domain_bounds)
-    r3 <- run_replicate(dcdfiles[3], pdb, domain_bounds)
+    r1 <- run_replicate(dcdfiles[1], pdb, inds_A, inds_B, mass_A, mass_B)
+    r2 <- run_replicate(dcdfiles[2], pdb, inds_A, inds_B, mass_A, mass_B)
+    r3 <- run_replicate(dcdfiles[3], pdb, inds_A, inds_B, mass_A, mass_B)
 
     # NOTE: lahko bi dal, da se nastavijo NA vrednosti, če nimajo
     # enakih dolžin...
@@ -61,24 +68,27 @@ run <- function(protein) {
 
 # * izračuna razdalje med masnimi centri domen
 # * vrne vektor števil (razdalj)
-run_replicate <- function(dcdfile, pdb, domain_bounds) {
+run_replicate <- function(dcdfile, pdb, inds_A, inds_B, mass_A, mass_B) {
+    cat(dcdfile, "... ")
     dcd <- read.dcd(dcdfile, verbose = FALSE)
 
-    # določi kje sta domeni, ignoriraj vodike pri selekciji
-    inds_A <- atom.select(pdb, "noh", resno = domain_bounds[1]:domain_bounds[2])
-    inds_B <- atom.select(pdb, "noh", resno = domain_bounds[3]:domain_bounds[4])
+    # poravnava na prvo domeno
+    aligned <- fit.xyz(
+        fixed = pdb$xyz,
+        mobile = dcd,
+        fixed.inds = inds_A$xyz,
+        mobile.inds = inds_A$xyz
+    )
 
     # razdeli koordinate v trajektoriji glede na domene
-    coords_A <- dcd[, inds_A$xyz]
-    coords_B <- dcd[, inds_B$xyz]
-
-    # najde mase atomov za izračun masnega centra
-    mass_A <- atom2mass(pdb$atom[inds_A$atom, "elety"])
-    mass_B <- atom2mass(pdb$atom[inds_B$atom, "elety"])
+    coords_A <- aligned[, inds_A$xyz]
+    coords_B <- aligned[, inds_B$xyz]
 
     # preko koordinat in mas izračuna masne centre za vsak frame
     com_A <- com.xyz(coords_A, mass = mass_A)
     com_B <- com.xyz(coords_B, mass = mass_B)
+
+    cat("done\n")
 
     # com sta matrike oblike n×3 (x,y,z)
     # vrne evklidske razdalje med koordinatami
@@ -89,4 +99,4 @@ run_replicate <- function(dcdfile, pdb, domain_bounds) {
 
 ### main #####################################################################
 
-for (p in domains$protein) run(p)
+for (i in 1:n_all) run(domains$protein[i])
