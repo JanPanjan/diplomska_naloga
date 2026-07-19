@@ -95,7 +95,7 @@ run <- function(protein) {
     r2 <- run_replicate(dcdfiles[2], pdb, inds_A, inds_B, mass_A, mass_B)
     r3 <- run_replicate(dcdfiles[3], pdb, inds_A, inds_B, mass_A, mass_B)
 
-    n_frames <- max(nrow(r1))
+    n_frames <- max(nrow(r1), nrow(r2), nrow(r3))
 
     # nimajo vsi enako število frame-ov
     # na koncu skopira zadnjo vrstico da se zapolni do željene velikosti

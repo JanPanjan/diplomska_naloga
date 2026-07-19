@@ -1,4 +1,8 @@
 #!/bin/Rscript
+# TODO: updateaj to da bo kot rmsf_test_v2.r !
+# dovolj je 1 datoteka
+# ročno iz trajektorij izračunaj RMSF-je
+# tokrat ne fiksirat na eno domeno (ali pa pač izbriši skripto)
 
 # datoteke z RMSF-ji
 rmsfs <- list.files(path = "atlas_db/RMSF", pattern = "tsv", full.names = TRUE)

@@ -1,5 +1,5 @@
 # \<naslov diplomske naloge>
- 
+
 Repository vsebuje vso kodo, analize, izračune, s katerimi sem raziskoval proteine iz
 [ATLAS MD](https://www.dsimb.inserm.fr/ATLAS/about.html) za diplomsko nalogo.
 
@@ -15,18 +15,19 @@ Repository vsebuje vso kodo, analize, izračune, s katerimi sem raziskoval prote
 - [`scripts`](./scripts/) :
     - Fish in Python skripte so večinoma potrebne za prenašanje, premikanje podatkov.
     - R (in Rmd) skripte so potrebne za analize in izračune.
+- [`queries`](./queries/) : iskanje literature
 - [`sword_output`](./sword_output/) : domene določene s SWORD2, glej JSON datoteke
-- [`.envrc`](./.envrc) : globalne spremenljivke potrebne za Fish skripte. 
+- [`.envrc`](./.envrc) : globalne spremenljivke potrebne za Fish skripte.
 - [`sword_results.csv`](./sword_results.csv) : parsed JSON podatki, ki jih vrne SWORD2. Glej [`filtering.rmd`](./scripts/filtering.rmd) za format.
 - [`sword_results_clean.csv`](./sword_results_clean.csv) : ožji nabor proteinov, ki so bili izbrani za nadaljne analize.
 - [`two_domains.csv`](./two_domains.csv) : bolj berljiv format za meje domen izbranih proteinov (glej [`two_domains.r`](./scripts/two_domains.r)).
-    
+
 # Setup
 
-Testirano na Fedora Linux 44 (Workstation Edition). 
+Testirano na Fedora Linux 44 (Workstation Edition).
 
 - Python 3.14.6: <https://www.python.org/downloads/release/python-3146/>
-    - SWORD2: <https://github.com/DSIMB/SWORD2>. 
+    - SWORD2: <https://github.com/DSIMB/SWORD2>.
     - mdconvert: <https://mdtraj.org/1.9.4/mdconvert.html>
 - R 4.6.1: <https://www.r-project.org/>
     - bio3d 2.4-5 <https://thegrantlab.org/bio3d/>

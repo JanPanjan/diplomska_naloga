@@ -1,0 +1,131 @@
+#!/bin/Rscript
+# Nad proteini izvede statistična testa t in ks.
+#
+# Trajektorije replikatov fiksira na prvo domeno, nato izračuna RMSF vrednosti
+# in jih razdeli na dva dela glede na domeno. S statističnim testom primerja
+# ali se RMSF vrednosti med domenama razlikujejo.
+#
+# Ob statistični značilnosti lahko pričakujemo meddomensko gibanje.
+
+# ------------------------------------------------------------------------------
+library(bio3d)
+library(parallel)
+library(magrittr)
+
+setwd(Sys.getenv("ROOT"))
+
+# Rezultate testov shrani v 'results_target'.
+# Replikate proteinov, ki imajo statistično značilne razlike shrani v 'replicates_target'.
+# Imena proteinov, katerih vsi trije replikati passajo, shrani v 'proteins_target'
+results_target <- "rmsf_test_v2.csv"
+replicates_target <- "rmsf_test_v2_replicates.txt"
+proteins_target <- "rmsf_test_v2_proteins.txt"
+
+# meja za p-vrednosti testov
+cutoff <- 0.05
+
+# število jeder za paralelizacijo izračunov
+n_cores <- min(detectCores() - 1, 10)
+
+# trajektorije, pdbji in podatki o domenah
+# NOTE: lahko bi predhodno ustvaril poravnane trajektorije
+dcds    <- list.files(path = "atlas_db/TRAJ", pattern = ".dcd", full.names = TRUE)
+pdbs    <- list.files(path = "atlas_db/PDB", pattern = ".pdb", full.names = TRUE)
+domains <- read.csv("two_domains.csv")
+n_all   <- nrow(domains)
+
+# ------------------------------------------------------------------------------
+run <- function(i) {
+    protein  <- domains$protein[i]
+
+    cat("[", i, "/", n_all, "]", protein, "\n")
+
+    dcdfiles <- grep(protein, dcds, value = TRUE)
+    pdbfile  <- grep(protein, pdbs, value = TRUE)
+    assertthat::are_equal(length(dcdfiles), 3)
+    assertthat::are_equal(length(pdbfile), 1)
+
+    pdb <- read.pdb(pdbfile, verbose = FALSE)
+
+    domain_bounds <- domains[i, -1] |> unlist()
+    inds <- atom.select(pdb, "noh", resno = domain_bounds[1]:domain_bounds[2])
+
+    # rmsf-ji
+    rmsf1 <- run_replicate(dcdfiles[1], pdb, inds)
+    rmsf2 <- run_replicate(dcdfiles[2], pdb, inds)
+    rmsf3 <- run_replicate(dcdfiles[3], pdb, inds)
+
+    rm(pdb)
+
+    # izvedi testa
+    test1 <- run_test(rmsf1, domain_bounds)
+    test2 <- run_test(rmsf2, domain_bounds)
+    test3 <- run_test(rmsf3, domain_bounds)
+
+    protein_names <- sub(".dcd", "", basename(dcdfiles))
+
+    # združi rezultate
+    df <- rbind(test1, test2, test3)
+    df <- cbind(protein_names, df)
+
+    df
+}
+
+# vrne vektor rmsf vrednosti za replikat
+run_replicate <- function(dcdfile, pdb, inds) {
+    cat(dcdfile, "...\n")
+    dcd <- read.dcd(dcdfile, verbose = FALSE)
+    aligned <- fit.xyz(
+        fixed       = pdb$xyz,
+        mobile      = dcd,
+        fixed.inds  = inds$xyz,
+        mobile.inds = inds$xyz
+    )
+    rmsf(aligned)
+}
+
+# izvede statistični test nad rmsfji domen
+run_test <- function(rmsf, domain_bounds) {
+    rmsf_a <- rmsf[domain_bounds[1]:domain_bounds[2]]
+    rmsf_b <- rmsf[domain_bounds[3]:domain_bounds[4]]
+
+    ks_res  <- ks.test(rmsf_a, rmsf_b, alternative = "two.sided")
+
+    # logaritmiraj vrednosti, če je uporabljen t-test
+    rmsf_a <- log(rmsf_a)
+    rmsf_b <- log(rmsf_b)
+
+    t_res  <- t.test(rmsf_a, rmsf_b, alternative = "two.sided")
+
+    # enovrstični dataframe
+    data.frame(
+        ks_stat   = ks_res$statistic,
+        ks_pval   = ks_res$p.value,
+        ks_pass   = ks_res$p.value < cutoff,
+        t_stat    = t_res$statistic,
+        t_pval    = t_res$p.value,
+        t_pass    = t_res$p.value < cutoff,
+        both_pass = (t_res$p.value < cutoff) & (ks_res$p.value < cutoff)
+    )
+}
+
+# --------------------------------------------------------------------
+cat("using", n_cores, "cores\n")
+cat("using", cutoff,  "as cutoff for p-values\n")
+
+# rezultati testov
+results <- mclapply(1:n_all, run)
+results <- do.call(rbind, results)
+
+# imena replikatov proteinov ki passajo OBA testa
+passed_replicates <- results[which(results$both_pass), "protein"]
+
+# imena proteinov ki passajo z vsakim replikatom
+passed_proteins <- passed_replicates %>%
+    sub("_R.", "", .) %>%
+    table() %>%
+    grep(3, ., value = TRUE) %>%
+    names(.)
+
+write.csv(results, results_target, quote = FALSE, row.names = FALSE)
+writeLines(passed_replicates, replicates_target)
