@@ -114,7 +114,7 @@ cat("using", n_cores, "cores\n")
 cat("using", cutoff,  "as cutoff for p-values\n")
 
 # rezultati testov
-results <- mclapply(1:n_all, run)
+results <- mclapply(1:n_all, run, mc.cores = n_cores)
 results <- do.call(rbind, results)
 
 # imena replikatov proteinov ki passajo OBA testa
