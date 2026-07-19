@@ -91,7 +91,7 @@ run_test <- function(rmsf, domain_bounds) {
 
     ks_res  <- ks.test(rmsf_a, rmsf_b, alternative = "two.sided")
 
-    # logaritmiraj vrednosti, če je uporabljen t-test
+    # logaritmiraj za t-test
     rmsf_a <- log(rmsf_a)
     rmsf_b <- log(rmsf_b)
 
