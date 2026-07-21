@@ -1,5 +1,5 @@
 #!/bin/fish
-set files (cat "$ROOT/atlas_db/2024_11_18_ATLAS_pdb.txt")
+set files (cat "$ROOT/atlas_db/2024_11_18_ATLAS_pdb.txt") # TOOD: mogoče s curl prenese to datoteko, ker je še ni na začetku...
 set total 0
 set n (count $files)
 set i 0

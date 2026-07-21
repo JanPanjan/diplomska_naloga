@@ -5,7 +5,9 @@
 # in jih razdeli na dva dela glede na domeno. S statističnim testom primerja
 # ali se RMSF vrednosti med domenama razlikujejo.
 #
-# Ob statistični značilnosti lahko pričakujemo meddomensko gibanje.
+# Ob statistični značilnosti lahko pričakujemo meddomensko gibanje.*
+#
+# *ne čisto.. glej rmsf_ratios.r
 
 # ------------------------------------------------------------------------------
 library(bio3d)
@@ -21,27 +23,27 @@ results_target <- "rmsf_test_v2.csv"
 replicates_target <- "rmsf_test_v2_replicates.txt"
 proteins_target <- "rmsf_test_v2_proteins.txt"
 
-# meja za p-vrednosti testov
+# meja za p-vrednosti
 cutoff <- 0.05
 
-# število jeder za paralelizacijo izračunov
+# število jeder za paralelizacijo
 n_cores <- min(detectCores() - 1, 10)
 
 # trajektorije, pdbji in podatki o domenah
 # NOTE: lahko bi predhodno ustvaril poravnane trajektorije
-dcds    <- list.files(path = "atlas_db/TRAJ", pattern = ".dcd", full.names = TRUE)
-pdbs    <- list.files(path = "atlas_db/PDB", pattern = ".pdb", full.names = TRUE)
+dcds <- list.files(path = "atlas_db/TRAJ", pattern = ".dcd", full.names = TRUE)
+pdbs <- list.files(path = "atlas_db/PDB", pattern = ".pdb", full.names = TRUE)
 domains <- read.csv("two_domains.csv")
-n_all   <- nrow(domains)
+n_all <- nrow(domains)
 
 # ------------------------------------------------------------------------------
 run <- function(i) {
-    protein  <- domains$protein[i]
+    protein <- domains$protein[i]
 
     cat("[", i, "/", n_all, "]", protein, "\n")
 
     dcdfiles <- grep(protein, dcds, value = TRUE)
-    pdbfile  <- grep(protein, pdbs, value = TRUE)
+    pdbfile <- grep(protein, pdbs, value = TRUE)
     assertthat::are_equal(length(dcdfiles), 3)
     assertthat::are_equal(length(pdbfile), 1)
 
@@ -89,13 +91,13 @@ run_test <- function(rmsf, domain_bounds) {
     rmsf_a <- rmsf[domain_bounds[1]:domain_bounds[2]]
     rmsf_b <- rmsf[domain_bounds[3]:domain_bounds[4]]
 
-    ks_res  <- ks.test(rmsf_a, rmsf_b, alternative = "two.sided")
+    ks_res <- ks.test(rmsf_a, rmsf_b, alternative = "two.sided")
 
     # logaritmiraj vrednosti, če je uporabljen t-test
     rmsf_a <- log(rmsf_a)
     rmsf_b <- log(rmsf_b)
 
-    t_res  <- t.test(rmsf_a, rmsf_b, alternative = "two.sided")
+    t_res <- t.test(rmsf_a, rmsf_b, alternative = "two.sided")
 
     # enovrstični dataframe
     data.frame(
@@ -111,7 +113,7 @@ run_test <- function(rmsf, domain_bounds) {
 
 # --------------------------------------------------------------------
 cat("using", n_cores, "cores\n")
-cat("using", cutoff,  "as cutoff for p-values\n")
+cat("using", cutoff, "as cutoff for p-values\n")
 
 # rezultati testov
 results <- mclapply(1:n_all, run)

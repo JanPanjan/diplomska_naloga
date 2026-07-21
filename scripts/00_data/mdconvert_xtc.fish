@@ -1,4 +1,8 @@
 #!/bin/fish
+# xtc trajektorije pretvori v dcd format
+# bio3d ima možnost branja dcd, za xtc nima
+#
+# dependency: https://mdtraj.org/1.9.4/mdconvert.html
 
 pushd "$ROOT/atlas_db/TRAJ"
 
