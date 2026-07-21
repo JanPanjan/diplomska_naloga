@@ -1,4 +1,5 @@
 #!/bin/bash
+mkdir -p "$ROOT/atlas_db"
 pushd "$ROOT/scripts/00_data"
 
 # ./calculate_atlas_size.fish

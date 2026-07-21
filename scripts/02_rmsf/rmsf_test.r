@@ -15,13 +15,14 @@ library(parallel)
 library(magrittr)
 
 setwd(Sys.getenv("ROOT"))
+source("./scripts/utils.r")
 
 # Rezultate testov shrani v 'results_target'.
 # Replikate proteinov, ki imajo statistično značilne razlike shrani v 'replicates_target'.
 # Imena proteinov, katerih vsi trije replikati passajo, shrani v 'proteins_target'
-results_target <- "rmsf_test_v2.csv"
-replicates_target <- "rmsf_test_v2_replicates.txt"
-proteins_target <- "rmsf_test_v2_proteins.txt"
+results_target <- "rmsf_test_results.csv"
+replicates_target <- "rmsf_test_replicates.txt"
+proteins_target <- "rmsf_test_proteins.txt"
 
 # meja za p-vrednosti
 cutoff <- 0.05
@@ -31,25 +32,21 @@ n_cores <- min(detectCores() - 1, 10)
 
 # trajektorije, pdbji in podatki o domenah
 # NOTE: lahko bi predhodno ustvaril poravnane trajektorije
-dcds <- list.files(path = "atlas_db/TRAJ", pattern = ".dcd", full.names = TRUE)
-pdbs <- list.files(path = "atlas_db/PDB", pattern = ".pdb", full.names = TRUE)
-domains <- read.csv("two_domains.csv")
-n_all <- nrow(domains)
+data <- load_data() # glej utils.r
+n_all <- nrow(data$domains)
 
 # ------------------------------------------------------------------------------
 run <- function(i) {
-    protein <- domains$protein[i]
+    protein <- data$domains$protein[i]
 
-    cat("[", i, "/", n_all, "]", protein, "\n")
-
-    dcdfiles <- grep(protein, dcds, value = TRUE)
-    pdbfile <- grep(protein, pdbs, value = TRUE)
+    dcdfiles <- grep(protein, data$dcd, value = TRUE)
+    pdbfile <- grep(protein, data$pdb, value = TRUE)
     assertthat::are_equal(length(dcdfiles), 3)
     assertthat::are_equal(length(pdbfile), 1)
 
     pdb <- read.pdb(pdbfile, verbose = FALSE)
 
-    domain_bounds <- domains[i, -1] |> unlist()
+    domain_bounds <- data$domains[i, -1] |> unlist()
     inds <- atom.select(pdb, "noh", resno = domain_bounds[1]:domain_bounds[2])
 
     # rmsf-ji
@@ -75,7 +72,7 @@ run <- function(i) {
 
 # vrne vektor rmsf vrednosti za replikat
 run_replicate <- function(dcdfile, pdb, inds) {
-    cat(dcdfile, "...\n")
+    cat(dcdfile, "\n")
     dcd <- read.dcd(dcdfile, verbose = FALSE)
     aligned <- fit.xyz(
         fixed       = pdb$xyz,

@@ -1,59 +1,42 @@
 #!/bin/Rscript
 # spectral density estimation
 library(astsa)
+library(knitr)
 
-setwd(Sys.getenv("ROOT"))
+# setwd(Sys.getenv("ROOT"))
+opts_knit$set(root.dir = Sys.getenv("ROOT"))
 
-distances <- list.files("atlas_db/COM", "dist.csv", full.names = TRUE)
-angles <- list.files("atlas_db/PAI", "angles.csv", full.names = TRUE)
-target <- "atlas_db/SDE"
-if (!dir.exists(target)) dir.create(target)
+distances <- list.files("../../atlas_db/COM", "dist.csv", full.names = TRUE)
+angles <- list.files("../../atlas_db/PAI", "angles.csv", full.names = TRUE)
+# target <- "atlas_db/SDE"
+# if (!dir.exists(target)) dir.create(target)
 
 run_distances <- function(dfile) {
     d <- read.csv(dfile)
     k <- kernel("daniell", 4)
-    spec1 <- mvspec(d$R1, k, log = "no", plot = FALSE)
-    spec2 <- mvspec(d$R2, k, log = "no", plot = FALSE)
-    spec3 <- mvspec(d$R3, k, log = "no", plot = FALSE)
 
-    # fname <- file.path(target, sub(".csv", ".png", basename(dfile)))
-    # png(fname)
-
-    par(mfrow = c(3, 1))
-    plot(spec1$details[, 3], type = "l", col = "red", main = "R1")
-    plot(spec2$details[, 3], type = "l", col = "orange", main = "R2")
-    plot(spec3$details[, 3], type = "l", col = "green", main = "R3")
-    # invisible(dev.off())
+    par(mfrow = c(1, 3))
+    mvspec(d$R1, k, log = "no", plot = TRUE)
+    mvspec(d$R2, k, log = "no", plot = TRUE)
+    mvspec(d$R3, k, log = "no", plot = TRUE)
 }
 
 run_angles <- function(afile) {
     d <- read.csv(afile)
     k <- kernel("daniell", 4)
-    specR1p1 <- mvspec(d$R1_p1, k, log = "no", plot = FALSE)
-    specR1p2 <- mvspec(d$R1_p2, k, log = "no", plot = FALSE)
-    specR1p3 <- mvspec(d$R1_p3, k, log = "no", plot = FALSE)
 
-    specR2p1 <- mvspec(d$R2_p1, k, log = "no", plot = FALSE)
-    specR2p2 <- mvspec(d$R2_p2, k, log = "no", plot = FALSE)
-    specR2p3 <- mvspec(d$R2_p3, k, log = "no", plot = FALSE)
-
-    specR3p1 <- mvspec(d$R3_p1, k, log = "no", plot = FALSE)
-    specR3p2 <- mvspec(d$R3_p2, k, log = "no", plot = FALSE)
-    specR3p3 <- mvspec(d$R3_p3, k, log = "no", plot = FALSE)
-
-    #+ fig.width=15
     par(mfrow = c(2, 3))
-    plot(specR1p1$details[, 3], type = "l", col = "red", main = "R1p1")
-    plot(specR1p2$details[, 3], type = "l", col = "orange", main = "R1p2")
-    plot(specR1p3$details[, 3], type = "l", col = "green", main = "R1p3")
+    mvspec(d$R1_p1, k, log = "no", plot = TRUE)
+    mvspec(d$R1_p2, k, log = "no", plot = TRUE)
+    mvspec(d$R1_p3, k, log = "no", plot = TRUE)
 
-    plot(specR2p1$details[, 3], type = "l", col = "red", main = "R2p1")
-    plot(specR2p2$details[, 3], type = "l", col = "orange", main = "R2p2")
-    plot(specR2p3$details[, 3], type = "l", col = "green", main = "R2p3")
+    mvspec(d$R2_p1, k, log = "no", plot = TRUE)
+    mvspec(d$R2_p2, k, log = "no", plot = TRUE)
+    mvspec(d$R2_p3, k, log = "no", plot = TRUE)
 
-    plot(specR3p1$details[, 3], type = "l", col = "red", main = "R3p1")
-    plot(specR3p2$details[, 3], type = "l", col = "orange", main = "R3p2")
-    plot(specR3p3$details[, 3], type = "l", col = "green", main = "R3p3")
+    mvspec(d$R3_p1, k, log = "no", plot = TRUE)
+    mvspec(d$R3_p2, k, log = "no", plot = TRUE)
+    mvspec(d$R3_p3, k, log = "no", plot = TRUE)
 }
 
 for (dfile in distances) run_distances(dfile)

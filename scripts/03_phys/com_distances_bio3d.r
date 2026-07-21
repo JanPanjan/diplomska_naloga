@@ -1,11 +1,11 @@
 #!/bin/Rscript
 library(bio3d)
+library(parallel)
 
-# pdb in trajektorije
-# POMEMBNO: xtc trajektorije sem predhodno z mdconvert pretvoril v dcd format
-pdbs <- list.files(path = "atlas_db/PDB", pattern = "pdb", full.names = TRUE)
-dcds <- list.files(path = "atlas_db/TRAJ", pattern = "dcd", full.names = TRUE)
-domains <- read.csv("two_domains.csv")
+setwd(Sys.getenv("ROOT"))
+source("./scripts/utils.r")
+
+data <- load_data()
 n_all <- nrow(domains)
 
 # target dir
@@ -21,33 +21,30 @@ if (!dir.exists(target)) dir.create(target, recursive = TRUE)
 # 2     x  x  x
 # 3     x  x  x
 # ...
-run <- function(protein) {
-    cat("[", i, "/", n_all, "]", protein, "\n")
+run <- function(i) {
+    protein <- data$domains$protein[i]
 
-    # 3 replikati, 3 datoteke na protein
-    dcdfiles <- grep(protein, dcds, value = TRUE)
+    dcdfiles <- grep(protein, data$dcd, value = TRUE)
+    pdbfile <- grep(protein, data$pdb, value = TRUE)
     assertthat::are_equal(length(dcdfiles), 3)
-
-    pdbfile <- grep(protein, pdbs, value = TRUE)
     assertthat::are_equal(length(pdbfile), 1)
 
     pdb <- read.pdb(pdbfile, verbose = FALSE)
 
-    # najdi meje domen
-    domain_bounds <- domains[domains$protein == protein, -1] |> unlist()
+    domain_bounds <- data$domains[i, -1] |> unlist()
 
     # določi kje sta domeni, ignoriraj vodike pri selekciji
-    inds_A <- atom.select(pdb, "noh", resno = domain_bounds[1]:domain_bounds[2])
-    inds_B <- atom.select(pdb, "noh", resno = domain_bounds[3]:domain_bounds[4])
+    inds_a <- atom.select(pdb, "noh", resno = domain_bounds[1]:domain_bounds[2])
+    inds_b <- atom.select(pdb, "noh", resno = domain_bounds[3]:domain_bounds[4])
 
     # najde mase atomov za izračun masnega centra
-    mass_A <- atom2mass(pdb$atom[inds_A$atom, "elety"])
-    mass_B <- atom2mass(pdb$atom[inds_B$atom, "elety"])
+    mass_a <- atom2mass(pdb$atom[inds_a$atom, "elety"])
+    mass_b <- atom2mass(pdb$atom[inds_b$atom, "elety"])
 
     # razdalje za vsak replikat
-    r1 <- run_replicate(dcdfiles[1], pdb, inds_A, inds_B, mass_A, mass_B)
-    r2 <- run_replicate(dcdfiles[2], pdb, inds_A, inds_B, mass_A, mass_B)
-    r3 <- run_replicate(dcdfiles[3], pdb, inds_A, inds_B, mass_A, mass_B)
+    r1 <- run_replicate(dcdfiles[1], pdb, inds_a, inds_b, mass_a, mass_b)
+    r2 <- run_replicate(dcdfiles[2], pdb, inds_a, inds_b, mass_a, mass_b)
+    r3 <- run_replicate(dcdfiles[3], pdb, inds_a, inds_b, mass_a, mass_b)
 
     # NOTE: lahko bi dal, da se nastavijo NA vrednosti, če nimajo
     # enakih dolžin...
@@ -68,35 +65,35 @@ run <- function(protein) {
 
 # * izračuna razdalje med masnimi centri domen
 # * vrne vektor števil (razdalj)
-run_replicate <- function(dcdfile, pdb, inds_A, inds_B, mass_A, mass_B) {
-    cat(dcdfile, "... ")
+run_replicate <- function(dcdfile, pdb, inds_a, inds_b, mass_a, mass_b) {
+    cat(dcdfile, "\n")
     dcd <- read.dcd(dcdfile, verbose = FALSE)
 
     # poravnava na prvo domeno
     aligned <- fit.xyz(
         fixed = pdb$xyz,
         mobile = dcd,
-        fixed.inds = inds_A$xyz,
-        mobile.inds = inds_A$xyz
+        fixed.inds = inds_a$xyz,
+        mobile.inds = inds_a$xyz
     )
 
     # razdeli koordinate v trajektoriji glede na domene
-    coords_A <- aligned[, inds_A$xyz]
-    coords_B <- aligned[, inds_B$xyz]
+    coords_a <- aligned[, inds_a$xyz]
+    coords_b <- aligned[, inds_b$xyz]
 
     # preko koordinat in mas izračuna masne centre za vsak frame
-    com_A <- com.xyz(coords_A, mass = mass_A)
-    com_B <- com.xyz(coords_B, mass = mass_B)
-
-    cat("done\n")
+    com_a <- com.xyz(coords_a, mass = mass_a)
+    com_b <- com.xyz(coords_b, mass = mass_b)
 
     # com sta matrike oblike n×3 (x,y,z)
     # vrne evklidske razdalje med koordinatami
-    (com_A - com_B)**2 |>
+    (com_a - com_b)**2 |>
         rowSums() |>
         sqrt()
 }
 
 ### main #####################################################################
 
-for (i in 1:n_all) run(domains$protein[i])
+n_cores <- max(detectCores() - 1, 10)
+cat("using", n_cores, "cores\n")
+mclapply(1:n_all, run, mc.cores = n_cores)

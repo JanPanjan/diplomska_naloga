@@ -1,7 +1,7 @@
 #!/usr/bin/fish
 # prenese datoteke iz ATLAS baze (paralelizirano)
 
-pushd $ROOT/atlas_db
+pushd "$ROOT/atlas_db"
 
 set n 5
 set prot_list "2024_11_18_ATLAS_pdb.txt"

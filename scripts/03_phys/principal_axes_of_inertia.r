@@ -1,14 +1,12 @@
 #!/bin/Rscript
 # izračuna kote med vztrajnostnimi osemi domen
-
 library(bio3d)
 # library(plotly)
 
 setwd(Sys.getenv("ROOT"))
+source("./scripts/utils.r")
 
-pdbs <- list.files("atlas_db/PDB", "*.pdb", full.names = TRUE)
-dcds <- list.files("atlas_db/TRAJ", "*.dcd", full.names = TRUE)
-domains <- read.csv("two_domains.csv")
+data <- load_data()
 n_all <- nrow(domains)
 
 target <- file.path("atlas_db", "PAI")
@@ -68,32 +66,32 @@ inertia_tensor <- function(coords, masses) {
 # 2     x  x  x
 # 3     x  x  x
 # ...
-run <- function(protein) {
-    cat("[", i, "/", n_all, "]", protein, "\n")
+run <- function(i) {
+    protein <- data$domains$protein[i]
 
-    pdbfile <- grep(protein, pdbs, value = TRUE)
-    dcdfiles <- grep(protein, dcds, value = TRUE)
+    pdbfile <- grep(protein, data$pdb, value = TRUE)
+    dcdfiles <- grep(protein, data$dcd, value = TRUE)
     assertthat::are_equal(length(pdbfile), 1)
     assertthat::are_equal(length(dcdfiles), 3)
 
     pdb <- read.pdb(pdbfile, verbose = FALSE)
 
     # najdi meje domen
-    domain_bounds <- domains[domains$protein == protein, -1] |> unlist()
+    domain_bounds <- data$domains[i, -1] |> unlist()
 
     # izberi domeni
-    inds_A <- atom.select(pdb, "noh", resno = domain_bounds[1]:domain_bounds[2])
-    inds_B <- atom.select(pdb, "noh", resno = domain_bounds[3]:domain_bounds[4])
+    inds_a <- atom.select(pdb, "noh", resno = domain_bounds[1]:domain_bounds[2])
+    inds_b <- atom.select(pdb, "noh", resno = domain_bounds[3]:domain_bounds[4])
 
     # najde mase atomov za izračun masnega centra
-    mass_A <- atom2mass(pdb$atom[inds_A$atom, "elety"])
-    mass_B <- atom2mass(pdb$atom[inds_B$atom, "elety"])
+    mass_a <- atom2mass(pdb$atom[inds_a$atom, "elety"])
+    mass_b <- atom2mass(pdb$atom[inds_b$atom, "elety"])
 
     # določimo kote za vsak frame za vsak replikat
     # v enem prehodu izračunamo vse tri glavne osi
-    r1 <- run_replicate(dcdfiles[1], pdb, inds_A, inds_B, mass_A, mass_B)
-    r2 <- run_replicate(dcdfiles[2], pdb, inds_A, inds_B, mass_A, mass_B)
-    r3 <- run_replicate(dcdfiles[3], pdb, inds_A, inds_B, mass_A, mass_B)
+    r1 <- run_replicate(dcdfiles[1], pdb, inds_a, inds_b, mass_a, mass_b)
+    r2 <- run_replicate(dcdfiles[2], pdb, inds_a, inds_b, mass_a, mass_b)
+    r3 <- run_replicate(dcdfiles[3], pdb, inds_a, inds_b, mass_a, mass_b)
 
     n_frames <- max(nrow(r1), nrow(r2), nrow(r3))
 
@@ -135,51 +133,49 @@ run <- function(protein) {
 # * izračuna kot med vsemi tremi vztrajnostnimi osmi domen za vsak frame
 #   v trajektoriji
 # * vrne data.frame z stolpci R1, R2, R3
-run_replicate <- function(dcdfile, pdb, inds_A, inds_B, mass_A, mass_B) {
-    cat(dcdfile, "... ")
-
-    # naloži trajektorijo
+run_replicate <- function(dcdfile, pdb, inds_a, inds_b, mass_a, mass_b) {
+    cat(dcdfile, "\n")
     dcd <- read.dcd(dcdfile, verbose = FALSE)
 
     # poravnava na prvo domeno !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     aligned <- fit.xyz(
         fixed = pdb$xyz,
         mobile = dcd,
-        fixed.inds = inds_A$xyz,
-        mobile.inds = inds_A$xyz
+        fixed.inds = inds_a$xyz,
+        mobile.inds = inds_a$xyz
     )
     n_frames <- nrow(aligned)
 
     # razdeli koordinate v trajektoriji glede na domene
-    coords_A <- aligned[, inds_A$xyz]
-    coords_B <- aligned[, inds_B$xyz]
+    coords_a <- aligned[, inds_a$xyz]
+    coords_b <- aligned[, inds_b$xyz]
 
     # preko koordinat in mas izračuna masne centre za vsak frame
-    com_A <- com.xyz(coords_A, mass = mass_A)
-    com_B <- com.xyz(coords_B, mass = mass_B)
+    com_a <- com.xyz(coords_a, mass = mass_a)
+    com_b <- com.xyz(coords_b, mass = mass_b)
 
     # izračuna kot med vsakimi od treh osi v frame-u
     # vektor dolžine 3
     angles <- lapply(1:n_frames, \(i) {
-        crds_A <- matrix_coords(coords_A[i, ])
-        crds_B <- matrix_coords(coords_B[i, ])
+        crds_a <- matrix_coords(coords_a[i, ])
+        crds_b <- matrix_coords(coords_b[i, ])
 
         # centrira glede na masni center
-        centered_A <- scale(crds_A, center = com_A[i, ], scale = FALSE)
-        centered_B <- scale(crds_B, center = com_B[i, ], scale = FALSE)
+        centered_a <- scale(crds_a, center = com_a[i, ], scale = FALSE)
+        centered_b <- scale(crds_b, center = com_b[i, ], scale = FALSE)
 
-        inertia_A <- inertia_tensor(centered_A, mass_A)
-        inertia_B <- inertia_tensor(centered_B, mass_B)
+        inertia_a <- inertia_tensor(centered_a, mass_a)
+        inertia_b <- inertia_tensor(centered_b, mass_b)
 
         # lastni vektorji
-        axes_A <- eigen(inertia_A)$vectors
-        axes_B <- eigen(inertia_B)$vectors
+        axes_a <- eigen(inertia_a)$vectors
+        axes_b <- eigen(inertia_b)$vectors
 
         vapply(1:3, \(axis) {
-            paxis_A <- axes_A[, axis]
-            paxis_B <- axes_B[, axis]
+            paxis_a <- axes_a[, axis]
+            paxis_b <- axes_b[, axis]
 
-            sum(paxis_A * paxis_B) |>
+            sum(paxis_a * paxis_b) |>
                 abs() |>
                 acos()
         }, numeric(1))
@@ -272,7 +268,9 @@ run_frame_PLOT <- function(frame, inertia_tensors, original_coords, centered_coo
 
 ### main #####################################################################
 
-for (i in 1:n_all) run(domains$protein[i])
+n_cores <- min(detectCores() - 1, 10)
+cat("using", n_cores, "cores\n")
+mclapply(1:n_all, run, mc.cores = n_cores)
 
 # run_frame_PLOT(
 #     frame = 100,

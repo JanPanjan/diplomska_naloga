@@ -1,3 +1,7 @@
+# NOTE: zastarelo
+# NOTE: zastarelo
+# NOTE: zastarelo
+
 library(dplyr)
 library(ggplot2)
 
