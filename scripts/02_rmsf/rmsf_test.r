@@ -93,7 +93,7 @@ run_test <- function(rmsf, domain_bounds) {
 
     ks_res <- ks.test(rmsf_a, rmsf_b, alternative = "two.sided")
 
-    # logaritmiraj vrednosti, če je uporabljen t-test
+    # logaritmiraj za t-test
     rmsf_a <- log(rmsf_a)
     rmsf_b <- log(rmsf_b)
 
@@ -116,7 +116,7 @@ cat("using", n_cores, "cores\n")
 cat("using", cutoff, "as cutoff for p-values\n")
 
 # rezultati testov
-results <- mclapply(1:n_all, run)
+results <- mclapply(1:n_all, run, mc.cores = n_cores)
 results <- do.call(rbind, results)
 
 # imena replikatov proteinov ki passajo OBA testa
