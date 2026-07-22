@@ -5,26 +5,24 @@
 # protein2 start1 end1 start2 end2
 # protein3 start1 end1 start2 end2
 # ...
-setwd(Sys.getenv("ROOT"))
 library(magrittr)
 
 out <- "two_domains.csv"
-
-d <- read.csv("sword_results_clean.csv")
+data <- read.csv("sword_results_clean.csv")
 
 # izloči tiste, ki imajo samo 2 domeni
 # ohrani ime proteina in meje domen
-d <- d$protein %>%
+data <- data$protein %>%
     table() %>%
     {which(. < 3)} %>%
     names() %>%
-    {d[d$protein %in% ., c("protein", "start", "end")]}
+    {data[data$protein %in% ., c("protein", "start", "end")]}
 
 # združi vrstice, da bo en protein na vrstico
 d2 <- data.frame()
 
-for (i in seq(1, nrow(d), 2)) {
-    dsub  <- d[i:(i+1), ]
+for (i in seq(1, nrow(data), 2)) {
+    dsub  <- data[i:(i+1), ]
     start <- dsub$start
     end   <- dsub$end
     dnew  <- data.frame(

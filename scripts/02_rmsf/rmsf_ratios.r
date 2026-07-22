@@ -16,9 +16,6 @@ library(bio3d)
 library(parallel)
 library(magrittr)
 
-setwd(Sys.getenv("ROOT"))
-source("./scripts/utils.r")
-
 results_target <- "rmsf_ratios_results.csv"
 replicates_target <- "rmsf_ratios_replicates.txt"
 proteins_target <- "rmsf_ratios_proteins.txt"
@@ -26,6 +23,7 @@ proteins_target <- "rmsf_ratios_proteins.txt"
 # število jeder za paralelizacijo
 n_cores <- min(detectCores() - 1, 10)
 
-# trajektorije, pdbji in podatki o domenah
-data <- load_data() # glej utils.r
+data <- load_data("all")
 n_all <- nrow(data$domains)
+
+# ...

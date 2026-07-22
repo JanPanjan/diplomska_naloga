@@ -14,9 +14,6 @@ library(bio3d)
 library(parallel)
 library(magrittr)
 
-setwd(Sys.getenv("ROOT"))
-source("./scripts/utils.r")
-
 # Rezultate testov shrani v 'results_target'.
 # Replikate proteinov, ki imajo statistično značilne razlike shrani v 'replicates_target'.
 # Imena proteinov, katerih vsi trije replikati passajo, shrani v 'proteins_target'
@@ -30,16 +27,15 @@ cutoff <- 0.05
 # število jeder za paralelizacijo
 n_cores <- min(detectCores() - 1, 10)
 
-# trajektorije, pdbji in podatki o domenah
 # NOTE: lahko bi predhodno ustvaril poravnane trajektorije
-data <- load_data() # glej utils.r
+data <- load_data("all")
 n_all <- nrow(data$domains)
 
 # ------------------------------------------------------------------------------
 run <- function(i) {
     protein <- data$domains$protein[i]
 
-    dcdfiles <- grep(protein, data$dcd, value = TRUE)
+    dcdfiles <- grep(protein, data$traj, value = TRUE)
     pdbfile <- grep(protein, data$pdb, value = TRUE)
     assertthat::are_equal(length(dcdfiles), 3)
     assertthat::are_equal(length(pdbfile), 1)

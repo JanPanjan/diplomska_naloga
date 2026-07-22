@@ -1,19 +1,16 @@
 #!/bin/Rscript
 # dodaj podatek o verigi v PDB datoteke iz ATLAS
 # pomembno za delovanje SWORD2
-setwd(Sys.getenv("ROOT"))
+library(stringr)
 library(bio3d)
 
-root <- getwd()
-db <- file.path(root, "atlas_db")
+old_dir <- "atlas_db/PDB"
+new_dir <- "atlas_db/PDB_chained"
+if (!dir.exists(new_dir)) dir.create(new_dir)
 
-old_dir <- file.path(db, "PDB")
-new_dir <- file.path(db, "PDB_chained")
-dir.create(new_dir)
+pdbs <- load_data("pdb")
 
-files <- dir(old_dir, full.names = TRUE)
-
-for (file in files) {
+for (file in pdbs) {
      cat(file, ": ")
 
      # preberi datoteko in dobi njeno ime iz absolutne poti
@@ -21,7 +18,7 @@ for (file in files) {
      fname <- basename(file)
 
      # iz imena povleči podatek o verigi
-     chain <- stringr::str_replace(fname, "\\w+_(.*).pdb", "\\1")
+     chain <- str_replace(fname, "\\w+_(.*).pdb", "\\1")
 
      # vstavi verigo v PDB
      pdb$atom$chain <- rep(chain, nrow(pdb$atom))
