@@ -1,0 +1,84 @@
+```{r, fig.width=12, fig.height=5}
+source("utils.r")
+### scratch_buffer ###
+
+data <- load_data("dist")
+# head(data)
+# dark_plot()
+
+# power density estimation
+psd <- function(x, replicate) {
+    n <- length(x)
+
+    # časovni korak pri vzorčenju, "sampling rate" (1 ps)
+    dt <- 1
+    t_unit <- 1e-12
+    dt_sec <- dt * t_unit # [1e-12 s]
+
+    # frekvenca vzorčenja [1 THz]
+    fs_hz <- 1 / dt_sec
+
+    # nyquist frequency. najvišja frekvenca, ki jo lahko zaznamo v signalu
+    # frekvence višje od tega se bodo zrcalile nazaj v nižje, zato nam ni
+    # treba gledat vseh. [ 0.5 THz]
+    nyq_freq <- fs_hz / 2
+
+    if (nyq_freq != 5e+11) stop("nyquistova frekvenca je ", nyq_freq, " in ni enaka 5e+11. morda imaš drugačne podatke ali nekaj")
+
+    # vzamemo rezultate dft-ja samo do nyquistove frekvence (0-0.5 THz)
+    # + 1 zaradi 1-based indexing
+    half_n <- floor(n / 2) + 1
+
+    # vektor frekvenc do nyquistove frekvence
+    freq_hz <- seq(0, by = 1 / (n * dt), length.out = half_n)
+    # freq_hz <- 0:(half_n - 1)
+
+    # spremenimo v nanosekunde
+    # T [s] = 1/fr [s^-1]
+    period_ns <- (1 / freq_hz) / 1000
+
+    # predpostavka DFT je stacionarnost podatkov
+    # odstranjevanje linearnega trenda
+    fit <- lm(x ~ seq_along(x))
+    x_detrend <- resid(fit)
+
+    # okno za glajenje (smoothing).
+    # NOTE: Ni mi čisto jasno kaj je Hann-ovo okno in zakaj
+    # so izbrani neki parametri v tej funkciji, npr. 0.5. Ali je to tapering? Če ja, zakaj
+    # je to pomembno?
+    hann_window <- 0.5 * (1 - cos(2 * pi * (0:(n - 1)) / (n - 1)))
+    x_windowed <- x_detrend * hann_window
+
+    # signal -> frekvence
+    fft_out <- fft(x_windowed)
+
+    # moč vsake frekvence
+    power <- Mod(fft_out)^2
+    power <- 4/n * power[1:half_n]
+
+    # grafični parametri
+    par(mfrow = c(1, 2))
+    # layout_m <- matrix(c(1, 2, 3, 0), nrow = 2, byrow = TRUE)
+    # layout_m <- matrix(c(1, 2, 3), nrow = 1, byrow = TRUE)
+    # lay <- layout(layout_m, heights = c(2, 2, 2), widths = c(3, 1, 3), respect = TRUE)
+    # par(mar = c(5, 4.5, 3, 1))
+
+    plot(x, main = replicate, xlab = "čas (ps)", ylab = "razdalja (Å)", type = "l", frame = FALSE)
+    abline(h = mean(x), col = "red")
+
+    # boxplot(x, frame = FALSE, yaxt = "n")
+
+    plot(period_ns, power, type = "h", xlim = c(0.1, 1.1), xlab = "perioda (ns)", ylab = "spectrum", main = "",, frame = FALSE)
+    points(period_ns, power, xlim = c(0, 1.1))
+}
+
+for (dfile in data) {
+    d <- read.csv(dfile)
+    cat(sub("_dist.csv", "", basename(dfile)), "\n")
+    psd(d$R1, "R1")
+    psd(d$R2, "R2")
+    psd(d$R3, "R3")
+}
+
+# rmarkdown::render("scratch.r")
+```

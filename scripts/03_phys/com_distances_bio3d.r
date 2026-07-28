@@ -5,8 +5,8 @@ library(parallel)
 setwd(Sys.getenv("ROOT"))
 source("./scripts/utils.r")
 
-data <- load_data()
-n_all <- nrow(domains)
+data <- load_data("all")
+n_all <- nrow(data$domains)
 
 # target dir
 target <- file.path("atlas_db", "COM")
@@ -24,7 +24,7 @@ if (!dir.exists(target)) dir.create(target, recursive = TRUE)
 run <- function(i) {
     protein <- data$domains$protein[i]
 
-    dcdfiles <- grep(protein, data$dcd, value = TRUE)
+    dcdfiles <- grep(protein, data$traj, value = TRUE)
     pdbfile <- grep(protein, data$pdb, value = TRUE)
     assertthat::are_equal(length(dcdfiles), 3)
     assertthat::are_equal(length(pdbfile), 1)
@@ -46,13 +46,27 @@ run <- function(i) {
     r2 <- run_replicate(dcdfiles[2], pdb, inds_a, inds_b, mass_a, mass_b)
     r3 <- run_replicate(dcdfiles[3], pdb, inds_a, inds_b, mass_a, mass_b)
 
-    # NOTE: lahko bi dal, da se nastavijo NA vrednosti, če nimajo
-    # enakih dolžin...
-    min_frames <- min(length(r1), length(r2), length(r3))
-    ns <- 1:min_frames
+    n_frames <- max(nrow(r1), nrow(r2), nrow(r3))
+
+    # nimajo vsi enako število frame-ov
+    # na koncu skopira zadnjo vrstico da se zapolni do željene velikosti
+    pad_replicate <- function(replicate, target_len) {
+        cur_len <- nrow(replicate)
+        if (cur_len < target_len) {
+            # če je začetna dolžina 3, željena pa 5 bo idx = [1,2,3,3,3]
+            idx <- c(1:cur_len, rep(cur_len, target_len - cur_len))
+            replicate <- replicate[idx, ]
+            replicate$frame <- 1:target_len
+        }
+        replicate
+    }
+
+    r1 <- pad_replicate(r1, n_frames)
+    r2 <- pad_replicate(r2, n_frames)
+    r3 <- pad_replicate(r3, n_frames)
 
     df <- data.frame(
-        "frame" = ns,
+        "frame" = 1:n_frames,
         "R1" = r1[ns],
         "R2" = r2[ns],
         "R3" = r3[ns]

@@ -7,19 +7,25 @@
 # seznam s ključi.
 #
 # Možni ključi:
-# - traj    : trajektorije (.dcd)
-# - pdb     : protein data bank datoteke proteinov (.pdb)
-# - domains : podatki o domenskih mejah proteinov (two_domains.csv)
-load_data <- function(keys=NULL) {
-    if (is.null(keys)) return(list())
+# - traj      : trajektorije (TRAJ/*.dcd)
+# - pdb       : protein data bank datoteke proteinov (PDB/*.pdb)
+# - domains   : podatki o domenskih mejah proteinov (two_domains.csv)
+# - dist      : razdalje masnih centrov (COM/*_dist.csv)
+# - angles    : koti med vztrajnostnimi osmi (PAI/*_angles.csv)
+load_data <- function(keys = NULL) {
+    if (is.null(keys)) {
+        return(list())
+    }
 
     # vsak ključ ima dodeljen character vektor dolžine 2: path in pattern
     # prazen pattern pomeni, da naj prebere path kot datoteko
     # NOTE: čeprav obstaja .Rprofile bom pustil da naredi absoluten filepath. it makes me feel better :)
     paths <- list(
-        traj    = c(file.path(Sys.getenv("ROOT"), "atlas_db/TRAJ"),   ".dcd"),
-        pdb     = c(file.path(Sys.getenv("ROOT"), "atlas_db/PDB"),    ".pdb"),
-        domains = c(file.path(Sys.getenv("ROOT"), "two_domains.csv"), "")
+        traj = c(file.path(Sys.getenv("ROOT"), "atlas_db/TRAJ"), ".dcd"),
+        pdb = c(file.path(Sys.getenv("ROOT"), "atlas_db/PDB"), ".pdb"),
+        domains = c(file.path(Sys.getenv("ROOT"), "two_domains.csv"), ""),
+        dist = c(file.path(Sys.getenv("ROOT"), "atlas_db/COM"), "dist.csv"),
+        angles = c(file.path(Sys.getenv("ROOT"), "atlas_db/PAI"), "angles.csv")
     )
     existing_keys <- names(paths)
 
@@ -28,24 +34,47 @@ load_data <- function(keys=NULL) {
     # WARN: trenutno pokliče samo read.csv ne glede na
     # format, če mora prebrat datoteko! :O
     findfiles <- \(path_elem) {
-        if (path_elem[2] == "") return(read.csv(path_elem[1]))
-        list.files(path = path_elem[1], pattern = path_elem[2], full.names = TRUE)
+        if (path_elem[2] == "") {
+            read.csv(path_elem[1])
+        } else {
+            list.files(
+                path = path_elem[1],
+                pattern = path_elem[2],
+                full.names = TRUE
+            )
+        }
     }
 
     # wrapper za findfiles
-    load_data_for_real <- \(keys) sapply(keys, \(key) { list(findfiles(paths[[key]])) })
+    load_data_for_real <- \(keys) {
+        sapply(keys, \(key) {
+            list(findfiles(paths[[key]]))
+        })
+    }
 
     # takoj naloži vse
-    if (length(keys) == 1 && keys == "all") return(load_data_for_real(existing_keys))
+    if (length(keys) == 1 && keys == "all") {
+        return(load_data_for_real(existing_keys))
+    }
 
     # preveri podane ključe, ohrani samo veljavne
     nonex_keys <- which(!(keys %in% existing_keys))
     if (length(nonex_keys) > 0) {
         msg <- paste(
             "\nNekateri podani ključi ne obstajajo:",
-            { paste(sapply(keys[nonex_keys], \(key) paste0("'", key, "'")), collapse = ", ") },
+            {
+                paste(
+                    sapply(keys[nonex_keys], \(key) paste0("'", key, "'")),
+                    collapse = ", "
+                )
+            },
             "\nMožni ključi:",
-            { paste(sapply(existing_keys, \(key) paste0("'", key, "'")), collapse = ", ") }
+            {
+                paste(
+                    sapply(existing_keys, \(key) paste0("'", key, "'")),
+                    collapse = ", "
+                )
+            }
         )
         warning(msg)
         keys <- keys[-nonex_keys]
@@ -54,11 +83,28 @@ load_data <- function(keys=NULL) {
     len <- length(keys)
 
     # nič za vrnit
-    if (len == 0) return(list())
+    if (len == 0) {
+        return(list())
+    }
 
     # ne kompliciraj, če je en ključ
-    if (len == 1) return(findfiles(paths[[keys]]))
+    if (len == 1) {
+        return(findfiles(paths[[keys]]))
+    }
 
     # sicer seznam s ključi
     load_data_for_real(keys)
+}
+
+# ustvari inverted window za plottanje
+# no more flashbangs
+dark_plot <- function() {
+    par(
+        bg = "black", # Barva ozadja
+        fg = "white", # Osnovna barva (okvirji in črte)
+        col.axis = "white", # Oznake na oseh (številke)
+        col.lab = "white", # Imeta osi
+        col.main = "white" # Glavni naslov
+    )
+    plot(1)
 }

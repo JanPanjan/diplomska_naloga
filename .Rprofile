@@ -1,2 +1,2 @@
-setwd(Sys.getenv("ROOT"))
+# setwd(Sys.getenv("ROOT"))
 source("scripts/utils.r")

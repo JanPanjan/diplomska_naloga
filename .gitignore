@@ -30,9 +30,11 @@
 !sword_output/1dd3_A*
 
 # ostalo
+frequencies_units.txt
 /queries/*
 /scripts/scratch.r
 /scripts/TODO
+/scripts/*_files
 1dd3_A_fit_A.*
 /gromacs_tutorial_1
 tmp.log
