@@ -5,6 +5,7 @@
 # 'data' je podan kot character vector ključev. Prazen vektor ne naloži podatkov.
 # Character string naloži direktno data.frame/vektor. Character vektor naloži
 # seznam s ključi.
+# Poseben primer je character string "all", ki naloži vse kar je možno.
 #
 # Možni ključi:
 # - traj      : trajektorije (TRAJ/*.dcd)
