@@ -1,84 +1,131 @@
-```{r, fig.width=12, fig.height=5}
-source("utils.r")
-### scratch_buffer ###
+---
+format:
+  html:
+    code-fold: true
+---
 
+
+```{r}
+#| code-fold: false
+library(ggplot2)
+library(patchwork)
+```
+
+
+```{r}
+#| code-summary: datoteke
+source(file.path(Sys.getenv("ROOT"), "scripts", "utils.r"))
 data <- load_data("dist")
-# head(data)
-# dark_plot()
 
-# power density estimation
-psd <- function(x, replicate) {
+files <- sapply(head(data), basename)
+names(files) <- NULL
+files
+```
+
+```{r}
+#| code-summary: primer
+read.csv(data[1]) |> head()
+```
+
+```{r}
+#| code-summary: psd funkcija
+psd <- function(x, protein, replicate) {
     n <- length(x)
 
-    # časovni korak pri vzorčenju, "sampling rate" (1 ps)
-    dt <- 1
-    t_unit <- 1e-12
-    dt_sec <- dt * t_unit # [1e-12 s]
+    # frekvenca vzorčenja: kolikokrat na časovno enoto vzorčimo (1 ps)
+    dt_sec <- 1 * 1e-12
+    fs_hz <- 1 / dt_sec # v Hz
 
-    # frekvenca vzorčenja [1 THz]
-    fs_hz <- 1 / dt_sec
+    # frekvenčni korak: razmik med točkami v frekvenčni domeni
+    #
+    # npr. za 100 meritev s frekvenco vzorčenja 1s je najnižja frekvenca, ki jo
+    # lahko določimo 0.01 Hz = 1/100 s^-1 <=> 1 cikel na 100 s (samo 1 cikel skozi vse meritve)
+    # najvišja frekvenca je enaka velikosti vzorca, n, in je 1 cikel na 1 s <=> 100/100 s^-1 = 1 Hz
+    #
+    # za primer 1001 meritev s frekvenco vzorčenja 1 ps (1e-12 s = 1/10000...0 s) je
+    # najnižja določljiva frekvenca 1/1001 ps^-1 = 0.000999001 * 1e+12 = 0.999001 GHz,
+    # najvišja pa 1001/1001 ps^-1 = 1 * 1e+12 Hz = 1 THz (načeloma...)
+    df <- fs_hz / n
 
-    # nyquist frequency. najvišja frekvenca, ki jo lahko zaznamo v signalu
-    # frekvence višje od tega se bodo zrcalile nazaj v nižje, zato nam ni
-    # treba gledat vseh. [ 0.5 THz]
-    nyq_freq <- fs_hz / 2
+    # nyquistova frekvenca (N/2) določa do katere (analizne) frekvence se *aliasing*
+    # ne dogaja. potrebujemo samo frekvence do te (included), da zajamemo vse.
+    half_n <- 1 + floor(n / 2)
+    freq <- seq(0, by = df, length.out = half_n)
 
-    if (nyq_freq != 5e+11) stop("nyquistova frekvenca je ", nyq_freq, " in ni enaka 5e+11. morda imaš drugačne podatke ali nekaj")
+    # ker merimo 1.001 ns, lahko pretvorimo frekvence iz Hz v ns
+    # 999000999 / s = 999000999 / 1e+9 ns = 0.999001 ns^-1
+    freq_ns <- freq / 1e+9
 
-    # vzamemo rezultate dft-ja samo do nyquistove frekvence (0-0.5 THz)
-    # + 1 zaradi 1-based indexing
-    half_n <- floor(n / 2) + 1
-
-    # vektor frekvenc do nyquistove frekvence
-    freq_hz <- seq(0, by = 1 / (n * dt), length.out = half_n)
-    # freq_hz <- 0:(half_n - 1)
-
-    # spremenimo v nanosekunde
-    # T [s] = 1/fr [s^-1]
-    period_ns <- (1 / freq_hz) / 1000
-
-    # predpostavka DFT je stacionarnost podatkov
-    # odstranjevanje linearnega trenda
+    # predpostavka DFT je stacionarnost podatkov. odstranjevanje linearnega trenda
     fit <- lm(x ~ seq_along(x))
     x_detrend <- resid(fit)
 
-    # okno za glajenje (smoothing).
-    # NOTE: Ni mi čisto jasno kaj je Hann-ovo okno in zakaj
-    # so izbrani neki parametri v tej funkciji, npr. 0.5. Ali je to tapering? Če ja, zakaj
-    # je to pomembno?
-    hann_window <- 0.5 * (1 - cos(2 * pi * (0:(n - 1)) / (n - 1)))
-    x_windowed <- x_detrend * hann_window
+    # načeloma naj bi imeli manjši proteini nihanja z višjimi frekvencami in večji z
+    # manjšimi, zato jih scale-am na [0,1]
+    scale_it <- \(v) (v - min(v)) / (max(v) - min(v))
 
-    # signal -> frekvence
-    fft_out <- fft(x_windowed)
+    x_scaled <- scale_it(x_detrend)
 
-    # moč vsake frekvence
-    power <- Mod(fft_out)^2
-    power <- 4/n * power[1:half_n]
+    # TODO: spectral leakage?
 
-    # grafični parametri
-    par(mfrow = c(1, 2))
-    # layout_m <- matrix(c(1, 2, 3, 0), nrow = 2, byrow = TRUE)
-    # layout_m <- matrix(c(1, 2, 3), nrow = 1, byrow = TRUE)
-    # lay <- layout(layout_m, heights = c(2, 2, 2), widths = c(3, 1, 3), respect = TRUE)
-    # par(mar = c(5, 4.5, 3, 1))
+    # power density estimation
+    fft_out <- fft(x_scaled)
+    power <- (Mod(fft_out)^2)[1:half_n] |> scale_it()
 
-    plot(x, main = replicate, xlab = "čas (ps)", ylab = "razdalja (Å)", type = "l", frame = FALSE)
-    abline(h = mean(x), col = "red")
+    # --------------------------------------------------------
 
-    # boxplot(x, frame = FALSE, yaxt = "n")
+    df <- data.frame(time = 1:n, distances = x)
+    dfp <- data.frame(frequency = freq_ns[-1], pwr = power[-1]) # BREZ DC KOMPONENTE
 
-    plot(period_ns, power, type = "h", xlim = c(0.1, 1.1), xlab = "perioda (ns)", ylab = "spectrum", main = "",, frame = FALSE)
-    points(period_ns, power, xlim = c(0, 1.1))
+    plot_scale <- 10
+
+    signal <- df |>
+        ggplot(aes(x = time, y = distances)) +
+        geom_line() +
+        geom_hline(yintercept = median(x), color = "red") +
+        labs(
+            x = "čas (ps)",
+            y = "razdalja (Å)",
+            title = paste(protein, replicate),
+        ) +
+        theme_bw(base_size = plot_scale)
+        # theme_bw()
+
+    boxp <- df |>
+        ggplot(aes(x = time, y = distances)) +
+        geom_boxplot() +
+        labs(x = "", y = "") +
+        theme_void(base_size = plot_scale)
+        # theme_void()
+
+    power_plot <- dfp |>
+        ggplot(aes(x = frequency, ymin = 0, ymax = pwr)) +
+        geom_linerange() +
+        # labs(x = "frekvenca (Hz)", y = "moč", title = "Power Spectral Density (brez DC komponente)") +
+        labs(x = "frekvenca (Hz)", y = "moč") +
+        theme_bw(base_size = plot_scale)
+        # theme_bw()
+
+    print(
+        (signal + boxp + plot_layout(widths = c(1, 0.03))) / power_plot
+    )
 }
+```
 
+- Zgornji grafi: razdalja masnih centrov skozi trajektorijo.
+- Spodnji grafi: power spectral density brez DC komponente (frekvenca 0).
+
+```{r}
+#| warning: false
+#| column: screen-inset-shaded
+#| layout-ncol: 3
+#| code-fold: false
+ 
 for (dfile in data) {
     d <- read.csv(dfile)
-    cat(sub("_dist.csv", "", basename(dfile)), "\n")
-    psd(d$R1, "R1")
-    psd(d$R2, "R2")
-    psd(d$R3, "R3")
+    protein <- sub("_dist.csv", "", basename(dfile))
+    psd(d$R1, protein, "R1")
+    psd(d$R2, protein, "R2")
+    psd(d$R3, protein, "R3")
 }
-
-# rmarkdown::render("scratch.r")
 ```

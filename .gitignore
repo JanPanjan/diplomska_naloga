@@ -33,6 +33,8 @@
 frequencies_units.txt
 /queries/*
 /scripts/scratch.r
+/scripts/sde.r
+/scripts/03_phys/psd_files/*
 /scripts/TODO
 /scripts/*_files
 1dd3_A_fit_A.*

@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>scratch</title>
+<title>psd</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -64,17 +64,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </style>
 
 
-<script src="scratch_files/libs/clipboard/clipboard.min.js"></script>
-<script src="scratch_files/libs/quarto-html/quarto.js" type="module"></script>
-<script src="scratch_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
-<script src="scratch_files/libs/quarto-html/popper.min.js"></script>
-<script src="scratch_files/libs/quarto-html/tippy.umd.min.js"></script>
-<script src="scratch_files/libs/quarto-html/anchor.min.js"></script>
-<link href="scratch_files/libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="scratch_files/libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="scratch_files/libs/bootstrap/bootstrap.min.js"></script>
-<link href="scratch_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="scratch_files/libs/bootstrap/bootstrap-2b36aa87206fc78aa0a3f561bfe08483.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="psd_files/libs/clipboard/clipboard.min.js"></script>
+<script src="psd_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="psd_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="psd_files/libs/quarto-html/popper.min.js"></script>
+<script src="psd_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="psd_files/libs/quarto-html/anchor.min.js"></script>
+<link href="psd_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="psd_files/libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="psd_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="psd_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="psd_files/libs/bootstrap/bootstrap-2b36aa87206fc78aa0a3f561bfe08483.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 
 
 </head>
@@ -83,2613 +83,1298 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
 
-<main class="content" id="quarto-document-content">
+<main class="content page-columns page-full" id="quarto-document-content">
 
 
 
 
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(<span class="st">"utils.r"</span>)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="do">### scratch_buffer </span><span class="al">###</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">load_data</span>(<span class="st">"dist"</span>)</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co"># head(data)</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># dark_plot()</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co"># power density estimation</span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>psd <span class="ot">&lt;-</span> <span class="cf">function</span>(x, replicate) {</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    n <span class="ot">&lt;-</span> <span class="fu">length</span>(x)</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="co"># časovni korak pri vzorčenju, "sampling rate" (1 ps)</span></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    dt <span class="ot">&lt;-</span> <span class="dv">1</span></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    t_unit <span class="ot">&lt;-</span> <span class="fl">1e-12</span></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    dt_sec <span class="ot">&lt;-</span> dt <span class="sc">*</span> t_unit <span class="co"># [1e-12 s]</span></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    <span class="co"># frekvenca vzorčenja [1 THz]</span></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    fs_hz <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span> dt_sec</span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    <span class="co"># nyquist frequency. najvišja frekvenca, ki jo lahko zaznamo v signalu</span></span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    <span class="co"># frekvence višje od tega se bodo zrcalile nazaj v nižje, zato nam ni</span></span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>    <span class="co"># treba gledat vseh. [ 0.5 THz]</span></span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>    nyq_freq <span class="ot">&lt;-</span> fs_hz <span class="sc">/</span> <span class="dv">2</span></span>
-<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (nyq_freq <span class="sc">!=</span> <span class="fl">5e+11</span>) <span class="fu">stop</span>(<span class="st">"nyquistova frekvenca je "</span>, nyq_freq, <span class="st">" in ni enaka 5e+11. morda imaš drugačne podatke ali nekaj"</span>)</span>
-<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>    <span class="co"># vzamemo rezultate dft-ja samo do nyquistove frekvence (0-0.5 THz)</span></span>
-<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>    <span class="co"># + 1 zaradi 1-based indexing</span></span>
-<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>    half_n <span class="ot">&lt;-</span> <span class="fu">floor</span>(n <span class="sc">/</span> <span class="dv">2</span>) <span class="sc">+</span> <span class="dv">1</span></span>
-<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>    <span class="co"># vektor frekvenc do nyquistove frekvence</span></span>
-<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>    freq_hz <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="at">by =</span> <span class="dv">1</span> <span class="sc">/</span> (n <span class="sc">*</span> dt), <span class="at">length.out =</span> half_n)</span>
-<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>    <span class="co"># freq_hz &lt;- 0:(half_n - 1)</span></span>
-<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>    <span class="co"># spremenimo v nanosekunde</span></span>
-<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>    <span class="co"># T [s] = 1/fr [s^-1]</span></span>
-<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>    period_ns <span class="ot">&lt;-</span> (<span class="dv">1</span> <span class="sc">/</span> freq_hz) <span class="sc">/</span> <span class="dv">1000</span></span>
-<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>    <span class="co"># predpostavka DFT je stacionarnost podatkov</span></span>
-<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>    <span class="co"># odstranjevanje linearnega trenda</span></span>
-<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>    fit <span class="ot">&lt;-</span> <span class="fu">lm</span>(x <span class="sc">~</span> <span class="fu">seq_along</span>(x))</span>
-<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>    x_detrend <span class="ot">&lt;-</span> <span class="fu">resid</span>(fit)</span>
-<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>    <span class="co"># okno za glajenje (smoothing).</span></span>
-<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>    <span class="co"># </span><span class="al">NOTE</span><span class="co">: Ni mi čisto jasno kaj je Hann-ovo okno in zakaj</span></span>
-<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a>    <span class="co"># so izbrani neki parametri v tej funkciji, npr. 0.5. Ali je to tapering? Če ja, zakaj</span></span>
-<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a>    <span class="co"># je to pomembno?</span></span>
-<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a>    hann_window <span class="ot">&lt;-</span> <span class="fl">0.5</span> <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> <span class="fu">cos</span>(<span class="dv">2</span> <span class="sc">*</span> pi <span class="sc">*</span> (<span class="dv">0</span><span class="sc">:</span>(n <span class="sc">-</span> <span class="dv">1</span>)) <span class="sc">/</span> (n <span class="sc">-</span> <span class="dv">1</span>)))</span>
-<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a>    x_windowed <span class="ot">&lt;-</span> x_detrend <span class="sc">*</span> hann_window</span>
-<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a>    <span class="co"># signal -&gt; frekvence</span></span>
-<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a>    fft_out <span class="ot">&lt;-</span> <span class="fu">fft</span>(x_windowed)</span>
-<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a>    <span class="co"># moč vsake frekvence</span></span>
-<span id="cb1-55"><a href="#cb1-55" aria-hidden="true" tabindex="-1"></a>    power <span class="ot">&lt;-</span> <span class="fu">Mod</span>(fft_out)<span class="sc">^</span><span class="dv">2</span></span>
-<span id="cb1-56"><a href="#cb1-56" aria-hidden="true" tabindex="-1"></a>    power <span class="ot">&lt;-</span> <span class="dv">4</span><span class="sc">/</span>n <span class="sc">*</span> power[<span class="dv">1</span><span class="sc">:</span>half_n]</span>
-<span id="cb1-57"><a href="#cb1-57" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-58"><a href="#cb1-58" aria-hidden="true" tabindex="-1"></a>    <span class="co"># grafični parametri</span></span>
-<span id="cb1-59"><a href="#cb1-59" aria-hidden="true" tabindex="-1"></a>    <span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>))</span>
-<span id="cb1-60"><a href="#cb1-60" aria-hidden="true" tabindex="-1"></a>    <span class="co"># layout_m &lt;- matrix(c(1, 2, 3, 0), nrow = 2, byrow = TRUE)</span></span>
-<span id="cb1-61"><a href="#cb1-61" aria-hidden="true" tabindex="-1"></a>    <span class="co"># layout_m &lt;- matrix(c(1, 2, 3), nrow = 1, byrow = TRUE)</span></span>
-<span id="cb1-62"><a href="#cb1-62" aria-hidden="true" tabindex="-1"></a>    <span class="co"># lay &lt;- layout(layout_m, heights = c(2, 2, 2), widths = c(3, 1, 3), respect = TRUE)</span></span>
-<span id="cb1-63"><a href="#cb1-63" aria-hidden="true" tabindex="-1"></a>    <span class="co"># par(mar = c(5, 4.5, 3, 1))</span></span>
-<span id="cb1-64"><a href="#cb1-64" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-65"><a href="#cb1-65" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plot</span>(x, <span class="at">main =</span> replicate, <span class="at">xlab =</span> <span class="st">"čas (ps)"</span>, <span class="at">ylab =</span> <span class="st">"razdalja (Å)"</span>, <span class="at">type =</span> <span class="st">"l"</span>, <span class="at">frame =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb1-66"><a href="#cb1-66" aria-hidden="true" tabindex="-1"></a>    <span class="fu">abline</span>(<span class="at">h =</span> <span class="fu">mean</span>(x), <span class="at">col =</span> <span class="st">"red"</span>)</span>
-<span id="cb1-67"><a href="#cb1-67" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-68"><a href="#cb1-68" aria-hidden="true" tabindex="-1"></a>    <span class="co"># boxplot(x, frame = FALSE, yaxt = "n")</span></span>
-<span id="cb1-69"><a href="#cb1-69" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-70"><a href="#cb1-70" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plot</span>(period_ns, power, <span class="at">type =</span> <span class="st">"h"</span>, <span class="at">xlim =</span> <span class="fu">c</span>(<span class="fl">0.1</span>, <span class="fl">1.1</span>), <span class="at">xlab =</span> <span class="st">"perioda (ns)"</span>, <span class="at">ylab =</span> <span class="st">"spectrum"</span>, <span class="at">main =</span> <span class="st">""</span>,, <span class="at">frame =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb1-71"><a href="#cb1-71" aria-hidden="true" tabindex="-1"></a>    <span class="fu">points</span>(period_ns, power, <span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">1.1</span>))</span>
-<span id="cb1-72"><a href="#cb1-72" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb1-73"><a href="#cb1-73" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-74"><a href="#cb1-74" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (dfile <span class="cf">in</span> data) {</span>
-<span id="cb1-75"><a href="#cb1-75" aria-hidden="true" tabindex="-1"></a>    d <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(dfile)</span>
-<span id="cb1-76"><a href="#cb1-76" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="fu">sub</span>(<span class="st">"_dist.csv"</span>, <span class="st">""</span>, <span class="fu">basename</span>(dfile)), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb1-77"><a href="#cb1-77" aria-hidden="true" tabindex="-1"></a>    <span class="fu">psd</span>(d<span class="sc">$</span>R1, <span class="st">"R1"</span>)</span>
-<span id="cb1-78"><a href="#cb1-78" aria-hidden="true" tabindex="-1"></a>    <span class="fu">psd</span>(d<span class="sc">$</span>R2, <span class="st">"R2"</span>)</span>
-<span id="cb1-79"><a href="#cb1-79" aria-hidden="true" tabindex="-1"></a>    <span class="fu">psd</span>(d<span class="sc">$</span>R3, <span class="st">"R3"</span>)</span>
-<span id="cb1-80"><a href="#cb1-80" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>1dd3_A </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-1.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-2.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-3.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>1dlj_A </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-4.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-5.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-6.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>1e7l_B </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-7.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-8.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-9.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>1fn9_B </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-10.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-11.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-12.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>1g38_D </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-13.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-14.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-15.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>1jq5_A </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-16.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-17.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-18.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>1k5n_A </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-19.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-20.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-21.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>1ls1_A </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-22.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-23.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-24.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>1lsl_A </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-25.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-26.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-27.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>1m5q_I </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-28.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-29.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-30.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>1m5q_Z </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-31.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-32.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-33.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>1nij_A </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-34.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-35.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-36.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>1nns_A </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-37.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-38.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-39.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>1nty_A </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-40.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-41.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-42.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>1qcs_A </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-43.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-44.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-45.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>1qlm_A </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-46.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-47.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-48.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>1rl6_A </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-49.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-50.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-51.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>1rrm_A </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-52.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-53.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-54.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>1t7v_A </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-55.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-56.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-57.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>1tez_B </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-58.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-59.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-60.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>1tzw_A </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-61.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-62.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-63.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>1uha_A </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-64.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-65.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-66.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>1vbi_A </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-67.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-68.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-69.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>1vct_A </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-70.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-71.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-72.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>1y6i_A </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-73.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-74.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-75.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>1y7t_B </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-76.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-77.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-78.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>1yqe_A </code></pre>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(patchwork)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>datoteke</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(<span class="fu">file.path</span>(<span class="fu">Sys.getenv</span>(<span class="st">"ROOT"</span>), <span class="st">"scripts"</span>, <span class="st">"utils.r"</span>))</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">load_data</span>(<span class="st">"dist"</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>files <span class="ot">&lt;-</span> <span class="fu">sapply</span>(<span class="fu">head</span>(data), basename)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(files) <span class="ot">&lt;-</span> <span class="cn">NULL</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>files</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "1dd3_A_dist.csv" "1dlj_A_dist.csv" "1e7l_B_dist.csv" "1fn9_B_dist.csv"
+[5] "1g38_D_dist.csv" "1jq5_A_dist.csv"</code></pre>
+</div>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>primer</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">read.csv</span>(data[<span class="dv">1</span>]) <span class="sc">|&gt;</span> <span class="fu">head</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>  frame       R1       R2       R3
+1     1 30.10178 30.10178 30.10178
+2     2 30.56530 31.32591 32.10934
+3     3 31.93041 32.31183 32.55265
+4     4 31.80040 32.02988 31.66854
+5     5 31.23198 30.96383 31.94216
+6     6 34.53876 33.11660 30.28674</code></pre>
+</div>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>psd funkcija</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>psd <span class="ot">&lt;-</span> <span class="cf">function</span>(x, protein, replicate) {</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    n <span class="ot">&lt;-</span> <span class="fu">length</span>(x)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="co"># frekvenca vzorčenja: kolikokrat na časovno enoto vzorčimo (1 ps)</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    dt_sec <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">*</span> <span class="fl">1e-12</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    fs_hz <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span> dt_sec <span class="co"># v Hz</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    <span class="co"># frekvenčni korak: razmik med točkami v frekvenčni domeni</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    <span class="co">#</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    <span class="co"># npr. za 100 meritev s frekvenco vzorčenja 1s je najnižja frekvenca, ki jo</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    <span class="co"># lahko določimo 0.01 Hz = 1/100 s^-1 &lt;=&gt; 1 cikel na 100 s (samo 1 cikel skozi vse meritve)</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    <span class="co"># najvišja frekvenca je enaka velikosti vzorca, n, in je 1 cikel na 1 s &lt;=&gt; 100/100 s^-1 = 1 Hz</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>    <span class="co">#</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>    <span class="co"># za primer 1001 meritev s frekvenco vzorčenja 1 ps (1e-12 s = 1/10000...0 s) je</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>    <span class="co"># najnižja določljiva frekvenca 1/1001 ps^-1 = 0.000999001 * 1e+12 = 0.999001 GHz,</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>    <span class="co"># najvišja pa 1001/1001 ps^-1 = 1 * 1e+12 Hz = 1 THz (načeloma...)</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>    df <span class="ot">&lt;-</span> fs_hz <span class="sc">/</span> n</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>    <span class="co"># nyquistova frekvenca (N/2) določa do katere (analizne) frekvence se *aliasing*</span></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>    <span class="co"># ne dogaja. potrebujemo samo frekvence do te (included), da zajamemo vse.</span></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>    half_n <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">+</span> <span class="fu">floor</span>(n <span class="sc">/</span> <span class="dv">2</span>)</span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>    freq <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="at">by =</span> df, <span class="at">length.out =</span> half_n)</span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>    <span class="co"># ker merimo 1.001 ns, lahko pretvorimo frekvence iz Hz v ns</span></span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 999000999 / s = 999000999 / 1e+9 ns = 0.999001 ns^-1</span></span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>    freq_ns <span class="ot">&lt;-</span> freq <span class="sc">/</span> <span class="fl">1e+9</span></span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>    <span class="co"># predpostavka DFT je stacionarnost podatkov. odstranjevanje linearnega trenda</span></span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a>    fit <span class="ot">&lt;-</span> <span class="fu">lm</span>(x <span class="sc">~</span> <span class="fu">seq_along</span>(x))</span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a>    x_detrend <span class="ot">&lt;-</span> <span class="fu">resid</span>(fit)</span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a>    <span class="co"># načeloma naj bi imeli manjši proteini nihanja z višjimi frekvencami in večji z</span></span>
+<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a>    <span class="co"># manjšimi, zato jih scale-am na [0,1]</span></span>
+<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a>    scale_it <span class="ot">&lt;-</span> \(v) (v <span class="sc">-</span> <span class="fu">min</span>(v)) <span class="sc">/</span> (<span class="fu">max</span>(v) <span class="sc">-</span> <span class="fu">min</span>(v))</span>
+<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a>    x_scaled <span class="ot">&lt;-</span> <span class="fu">scale_it</span>(x_detrend)</span>
+<span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a>    <span class="co"># </span><span class="al">TODO</span><span class="co">: spectral leakage?</span></span>
+<span id="cb6-39"><a href="#cb6-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-40"><a href="#cb6-40" aria-hidden="true" tabindex="-1"></a>    <span class="co"># power density estimation</span></span>
+<span id="cb6-41"><a href="#cb6-41" aria-hidden="true" tabindex="-1"></a>    fft_out <span class="ot">&lt;-</span> <span class="fu">fft</span>(x_scaled)</span>
+<span id="cb6-42"><a href="#cb6-42" aria-hidden="true" tabindex="-1"></a>    power <span class="ot">&lt;-</span> (<span class="fu">Mod</span>(fft_out)<span class="sc">^</span><span class="dv">2</span>)[<span class="dv">1</span><span class="sc">:</span>half_n] <span class="sc">|&gt;</span> <span class="fu">scale_it</span>()</span>
+<span id="cb6-43"><a href="#cb6-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-44"><a href="#cb6-44" aria-hidden="true" tabindex="-1"></a>    <span class="co"># --------------------------------------------------------</span></span>
+<span id="cb6-45"><a href="#cb6-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-46"><a href="#cb6-46" aria-hidden="true" tabindex="-1"></a>    df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">time =</span> <span class="dv">1</span><span class="sc">:</span>n, <span class="at">distances =</span> x)</span>
+<span id="cb6-47"><a href="#cb6-47" aria-hidden="true" tabindex="-1"></a>    dfp <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">frequency =</span> freq_ns[<span class="sc">-</span><span class="dv">1</span>], <span class="at">pwr =</span> power[<span class="sc">-</span><span class="dv">1</span>]) <span class="co"># BREZ DC KOMPONENTE</span></span>
+<span id="cb6-48"><a href="#cb6-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-49"><a href="#cb6-49" aria-hidden="true" tabindex="-1"></a>    plot_scale <span class="ot">&lt;-</span> <span class="dv">10</span></span>
+<span id="cb6-50"><a href="#cb6-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-51"><a href="#cb6-51" aria-hidden="true" tabindex="-1"></a>    signal <span class="ot">&lt;-</span> df <span class="sc">|&gt;</span></span>
+<span id="cb6-52"><a href="#cb6-52" aria-hidden="true" tabindex="-1"></a>        <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> time, <span class="at">y =</span> distances)) <span class="sc">+</span></span>
+<span id="cb6-53"><a href="#cb6-53" aria-hidden="true" tabindex="-1"></a>        <span class="fu">geom_line</span>() <span class="sc">+</span></span>
+<span id="cb6-54"><a href="#cb6-54" aria-hidden="true" tabindex="-1"></a>        <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="fu">median</span>(x), <span class="at">color =</span> <span class="st">"red"</span>) <span class="sc">+</span></span>
+<span id="cb6-55"><a href="#cb6-55" aria-hidden="true" tabindex="-1"></a>        <span class="fu">labs</span>(</span>
+<span id="cb6-56"><a href="#cb6-56" aria-hidden="true" tabindex="-1"></a>            <span class="at">x =</span> <span class="st">"čas (ps)"</span>,</span>
+<span id="cb6-57"><a href="#cb6-57" aria-hidden="true" tabindex="-1"></a>            <span class="at">y =</span> <span class="st">"razdalja (Å)"</span>,</span>
+<span id="cb6-58"><a href="#cb6-58" aria-hidden="true" tabindex="-1"></a>            <span class="at">title =</span> <span class="fu">paste</span>(protein, replicate),</span>
+<span id="cb6-59"><a href="#cb6-59" aria-hidden="true" tabindex="-1"></a>        ) <span class="sc">+</span></span>
+<span id="cb6-60"><a href="#cb6-60" aria-hidden="true" tabindex="-1"></a>        <span class="fu">theme_bw</span>(<span class="at">base_size =</span> plot_scale)</span>
+<span id="cb6-61"><a href="#cb6-61" aria-hidden="true" tabindex="-1"></a>        <span class="co"># theme_bw()</span></span>
+<span id="cb6-62"><a href="#cb6-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-63"><a href="#cb6-63" aria-hidden="true" tabindex="-1"></a>    boxp <span class="ot">&lt;-</span> df <span class="sc">|&gt;</span></span>
+<span id="cb6-64"><a href="#cb6-64" aria-hidden="true" tabindex="-1"></a>        <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> time, <span class="at">y =</span> distances)) <span class="sc">+</span></span>
+<span id="cb6-65"><a href="#cb6-65" aria-hidden="true" tabindex="-1"></a>        <span class="fu">geom_boxplot</span>() <span class="sc">+</span></span>
+<span id="cb6-66"><a href="#cb6-66" aria-hidden="true" tabindex="-1"></a>        <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">""</span>, <span class="at">y =</span> <span class="st">""</span>) <span class="sc">+</span></span>
+<span id="cb6-67"><a href="#cb6-67" aria-hidden="true" tabindex="-1"></a>        <span class="fu">theme_void</span>(<span class="at">base_size =</span> plot_scale)</span>
+<span id="cb6-68"><a href="#cb6-68" aria-hidden="true" tabindex="-1"></a>        <span class="co"># theme_void()</span></span>
+<span id="cb6-69"><a href="#cb6-69" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-70"><a href="#cb6-70" aria-hidden="true" tabindex="-1"></a>    power_plot <span class="ot">&lt;-</span> dfp <span class="sc">|&gt;</span></span>
+<span id="cb6-71"><a href="#cb6-71" aria-hidden="true" tabindex="-1"></a>        <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> frequency, <span class="at">ymin =</span> <span class="dv">0</span>, <span class="at">ymax =</span> pwr)) <span class="sc">+</span></span>
+<span id="cb6-72"><a href="#cb6-72" aria-hidden="true" tabindex="-1"></a>        <span class="fu">geom_linerange</span>() <span class="sc">+</span></span>
+<span id="cb6-73"><a href="#cb6-73" aria-hidden="true" tabindex="-1"></a>        <span class="co"># labs(x = "frekvenca (Hz)", y = "moč", title = "Power Spectral Density (brez DC komponente)") +</span></span>
+<span id="cb6-74"><a href="#cb6-74" aria-hidden="true" tabindex="-1"></a>        <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"frekvenca (Hz)"</span>, <span class="at">y =</span> <span class="st">"moč"</span>) <span class="sc">+</span></span>
+<span id="cb6-75"><a href="#cb6-75" aria-hidden="true" tabindex="-1"></a>        <span class="fu">theme_bw</span>(<span class="at">base_size =</span> plot_scale)</span>
+<span id="cb6-76"><a href="#cb6-76" aria-hidden="true" tabindex="-1"></a>        <span class="co"># theme_bw()</span></span>
+<span id="cb6-77"><a href="#cb6-77" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-78"><a href="#cb6-78" aria-hidden="true" tabindex="-1"></a>    <span class="fu">print</span>(</span>
+<span id="cb6-79"><a href="#cb6-79" aria-hidden="true" tabindex="-1"></a>        (signal <span class="sc">+</span> boxp <span class="sc">+</span> <span class="fu">plot_layout</span>(<span class="at">widths =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="fl">0.03</span>))) <span class="sc">/</span> power_plot</span>
+<span id="cb6-80"><a href="#cb6-80" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb6-81"><a href="#cb6-81" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-79.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<ul>
+<li>Zgornji grafi: razdalja masnih centrov skozi trajektorijo.</li>
+<li>Spodnji grafi: power spectral density brez DC komponente (frekvenca 0).</li>
+</ul>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (dfile <span class="cf">in</span> data) {</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    d <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(dfile)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    protein <span class="ot">&lt;-</span> <span class="fu">sub</span>(<span class="st">"_dist.csv"</span>, <span class="st">""</span>, <span class="fu">basename</span>(dfile))</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">psd</span>(d<span class="sc">$</span>R1, protein, <span class="st">"R1"</span>)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">psd</span>(d<span class="sc">$</span>R2, protein, <span class="st">"R2"</span>)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">psd</span>(d<span class="sc">$</span>R3, protein, <span class="st">"R3"</span>)</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell column-screen-inset-shaded quarto-layout-panel" data-layout-ncol="3">
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-2.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-80.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-3.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-81.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-4.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-5.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>1zjc_A </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-82.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-83.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-84.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>2bbr_A </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-85.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-86.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-87.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>2bjq_A </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-88.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-89.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-90.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>2bln_B </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-91.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-92.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-93.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>2cxi_A </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-94.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-95.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-96.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>2cxi_B </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-97.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-98.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-99.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>2d1l_A </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-100.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-101.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-102.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>2d5b_A </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-103.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-104.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-105.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>2gwm_A </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-106.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-107.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-108.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>2qia_A </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-109.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-110.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-111.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>2r31_A </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-112.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-113.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-114.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>2rij_A </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-115.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-116.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-117.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>2v9m_A </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-118.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-119.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-120.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>2vfq_A </code></pre>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-6.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-121.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
 </div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-7.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-122.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-8.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-9.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-123.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
 </div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-10.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>2wlt_A </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-124.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-125.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-126.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>2wr8_A </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-127.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-128.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-129.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>2x49_A </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-130.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-131.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-132.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>2yjg_A </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-133.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-11.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-12.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-134.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
 </div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-13.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-135.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-14.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-15.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>3a3d_B </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-136.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-137.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-138.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>3bpt_A </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-139.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-140.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-141.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-16.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-17.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>3bqk_A </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-142.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-143.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-144.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-18.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>3cml_A </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-145.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
-</div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-19.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-146.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-20.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-21.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-147.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
 </div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-22.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>3d3y_A </code></pre>
-</div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-148.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-23.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-24.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-149.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
 </div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-25.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-150.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-26.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-27.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>3f7w_A </code></pre>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-151.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-28.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-29.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-152.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-30.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-153.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-31.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-32.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>3hdj_B </code></pre>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-33.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-154.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
 </div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-34.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-155.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-35.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-36.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-156.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
 </div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-37.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>3hlz_A </code></pre>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-38.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-157.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-39.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-158.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-40.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-41.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-159.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-42.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>3hlz_B </code></pre>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-43.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-160.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-44.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-45.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-161.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
 </div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-46.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-162.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-47.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-48.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>3hol_A </code></pre>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-163.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-49.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-50.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-164.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-51.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-165.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-52.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-53.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>3ib5_A </code></pre>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-54.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-166.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
 </div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-55.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-167.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-56.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-57.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-168.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
 </div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-58.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>3lyf_D </code></pre>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-59.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-169.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-60.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-170.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-61.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-62.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-171.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-63.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>3wa1_A </code></pre>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-64.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-172.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-65.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-66.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-173.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
 </div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-67.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-174.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-68.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-69.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>4adn_A </code></pre>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-175.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-70.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-71.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-176.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-72.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-177.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-73.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-74.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>4bt9_A </code></pre>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-75.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-178.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
 </div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-76.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-179.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-77.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-78.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-180.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
 </div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-79.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>4cdp_A </code></pre>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-80.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-181.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-81.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-182.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-82.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-83.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-183.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-84.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>4cjn_A </code></pre>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-85.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-184.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-86.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-87.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-185.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
 </div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-88.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-186.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-89.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-90.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>4e40_A </code></pre>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-187.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-91.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-92.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-188.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-93.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-189.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-94.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-95.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>4ea9_A </code></pre>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-96.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-190.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
 </div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-97.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-191.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-98.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-99.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-192.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
 </div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-100.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>4fch_B </code></pre>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-101.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-193.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-102.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-194.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-103.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-104.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-195.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-105.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>4fhr_B </code></pre>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-106.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-196.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-107.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-108.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-197.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
 </div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-109.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-198.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-110.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-111.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>4gv2_A </code></pre>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-199.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-112.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-113.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-200.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-114.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-201.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-115.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-116.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>4jgi_A </code></pre>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-117.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-202.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
 </div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-118.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-203.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-119.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-120.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-204.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
 </div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-121.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>4jgi_B </code></pre>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-122.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-205.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-123.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-206.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-124.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-125.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-207.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-126.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>4kk7_A </code></pre>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-127.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-208.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-128.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-129.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-209.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
 </div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-130.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-210.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-131.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-132.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>4mb5_A </code></pre>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-211.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-133.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-134.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-212.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-135.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-213.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-136.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-137.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>4mp8_A </code></pre>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-138.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-214.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
 </div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-139.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-215.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-140.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-141.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-216.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
 </div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-142.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>4o87_A </code></pre>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-143.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-217.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-144.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-218.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-145.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-146.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-219.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-147.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>4ubp_C </code></pre>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-148.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-220.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-149.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-150.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-221.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
 </div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-151.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-222.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-152.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-153.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>4wt3_A </code></pre>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-223.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-154.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-155.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-224.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-156.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-225.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-157.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-158.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>4ywk_A </code></pre>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-159.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-226.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
 </div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-160.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-227.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-161.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-162.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-228.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
 </div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-163.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>4ywk_B </code></pre>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-164.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-229.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-165.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-230.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-166.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-167.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-231.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-168.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>5gof_A </code></pre>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-169.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-232.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-170.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-171.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-233.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
 </div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-172.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-234.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-173.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-174.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>5h2d_A </code></pre>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-235.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-175.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-176.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-236.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-177.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-237.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-178.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-179.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>5h7w_B </code></pre>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-180.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-238.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
 </div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-181.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-239.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-182.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-183.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-240.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
 </div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-184.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>5htl_A </code></pre>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-185.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-241.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-186.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-242.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-187.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-188.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-243.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-189.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>5imu_A </code></pre>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-190.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-244.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-191.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-192.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-245.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
 </div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-193.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-246.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-194.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-195.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>5lpa_A </code></pre>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-247.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-196.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-197.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-248.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-198.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-249.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-199.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-200.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>5njb_B </code></pre>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-201.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-250.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
 </div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-202.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-251.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-203.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-204.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-252.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
 </div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-205.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>5njc_D </code></pre>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-206.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-253.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-207.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-254.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-208.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-209.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-255.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-210.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>5t76_A </code></pre>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-211.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-256.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-212.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-213.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-257.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
 </div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-214.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-258.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-215.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-216.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>5wvo_C </code></pre>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-259.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-217.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-218.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-260.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-219.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-261.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-220.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-221.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>5yrt_C </code></pre>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-222.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-262.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
 </div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-223.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-263.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-224.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-225.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-264.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
 </div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-226.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>5yrv_I </code></pre>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-227.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-265.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-228.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-266.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-229.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-230.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-267.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-231.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>6e5y_A </code></pre>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-232.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-268.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-233.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-234.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-269.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
 </div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-235.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-270.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-236.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-237.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>6h49_A </code></pre>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-271.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-238.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-239.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-272.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-240.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-273.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-241.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-242.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>6h95_A </code></pre>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-243.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-274.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
 </div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-244.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-275.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-245.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-246.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-276.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
 </div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-247.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>6kty_A </code></pre>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-248.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-277.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-249.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-278.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-250.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-251.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-279.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-252.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>6o6y_A </code></pre>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-253.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-280.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-254.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-255.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-281.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
 </div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-256.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-282.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-257.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-258.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>6sdk_A </code></pre>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-283.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-259.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-260.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-284.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-261.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-285.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-262.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-263.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>6xds_A </code></pre>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-264.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-286.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
 </div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-265.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-287.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-266.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-267.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-288.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
 </div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-268.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>6xrx_A </code></pre>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-269.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-289.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-270.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-290.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-271.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-272.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-291.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-273.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>6y5p_B </code></pre>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-274.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-292.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-275.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-276.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-293.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
 </div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-277.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-294.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-278.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-279.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>7buy_A </code></pre>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-295.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-280.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-281.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-296.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-282.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-297.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-283.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-284.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>7ccg_A </code></pre>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-285.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-298.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
 </div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-286.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-299.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-287.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-288.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-300.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
 </div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-289.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>7jrq_A </code></pre>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-290.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-301.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-291.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-302.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-292.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-293.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-303.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-294.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>7n51_A </code></pre>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-295.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-304.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-296.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-297.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-305.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
 </div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-298.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-306.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-299.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-300.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>7zh9_A </code></pre>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-307.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-301.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-302.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-308.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-303.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-309.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-304.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-305.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>8b3w_A </code></pre>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-306.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-310.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
 </div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-307.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-311.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-308.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-309.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-312.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
 </div>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-310.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>8ezh_B </code></pre>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-311.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-313.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-312.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-314.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-313.png" class="img-fluid" width="672"></p>
 </div>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-314.png" class="img-fluid" width="672"></p>
 </div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="scratch_files/figure-html/unnamed-chunk-1-315.png" class="img-fluid figure-img" width="1152"></p>
-</figure>
+<div class="quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<p><img src="psd_files/figure-html/unnamed-chunk-5-315.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb107"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb107-1"><a href="#cb107-1" aria-hidden="true" tabindex="-1"></a><span class="co"># rmarkdown::render("scratch.r")</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 
 </main>
