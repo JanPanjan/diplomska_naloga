@@ -1,6 +1,6 @@
 # \<naslov diplomske naloge>
 
-> [!NOTE] Repositorij se je premaknil v <https://github.com/panjanjan/diplomska_naloga>.
+> [!note] Repositorij se je premaknil v <https://github.com/panjanjan/diplomska_naloga>.
 
 Repository vsebuje vso kodo, analize, izračune, s katerimi sem raziskoval proteine iz
 [ATLAS MD](https://www.dsimb.inserm.fr/ATLAS/about.html) za diplomsko nalogo.
